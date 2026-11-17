@@ -1,6 +1,14 @@
 # Online deployment
 
-The hosted demo uses three services: Vercel for React, Render for the Java API, and Neon for PostgreSQL. Account access and environment values are required before an end-to-end deployment can be verified. The laptop database is not exposed or uploaded by this setup.
+The hosted demo uses Vercel for React and Render for the Java API. PostgreSQL can be hosted on Neon or on Render. Account access and environment values are required before an end-to-end deployment can be verified. The laptop database is not exposed or uploaded by this setup.
+
+### Alternative: PostgreSQL on your existing Render account
+
+If you prefer not to create a Neon account, create a Render Postgres instance in the same region as the Java backend. Choose Free only for the short jury demo: Render documents that free databases expire 30 days after creation. A longer-term deployment needs a non-expiring database arrangement. No paid plan or automatic upgrade is authorised by this repository configuration.
+
+Use the database's internal hostname and actual database name in `DB_URL` (`jdbc:postgresql://YOUR-INTERNAL-HOST:5432/YOUR-DATABASE`), and its role/password in `DB_USER` / `DB_PASSWORD`. Keep these values in Render's backend environment settings. The remaining frontend and authentication steps are identical. The Blueprint intentionally does not create a database until the hosting/retention choice is settled.
+
+Reference: https://render.com/docs/free
 
 ## 1. Backend database — Neon
 
