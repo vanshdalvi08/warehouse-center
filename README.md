@@ -25,7 +25,7 @@ To run frontend interaction tests: `cd frontend` then `npm test`.
 
 ## Deploy online
 
-Cloud deployment configuration and protected sign-in are described in [DEPLOYMENT.md](DEPLOYMENT.md). Vercel hosts the frontend; Render runs Spring Boot; Neon stores PostgreSQL data. Cloud deployment still requires connected accounts and backend environment settings.
+Cloud deployment configuration and protected sign-in are described in [DEPLOYMENT.md](DEPLOYMENT.md). Vercel hosts the frontend; Render runs Spring Boot; Supabase stores PostgreSQL data. Cloud deployment still requires connected accounts and backend environment settings.
 
 ## Run on this Windows laptop
 

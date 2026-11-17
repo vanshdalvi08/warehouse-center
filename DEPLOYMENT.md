@@ -1,26 +1,29 @@
 # Online deployment
 
-The hosted demo uses Vercel for React and Render for the Java API. PostgreSQL can be hosted on Neon or on Render. Account access and environment values are required before an end-to-end deployment can be verified. The laptop database is not exposed or uploaded by this setup.
+The selected setup is **Vercel for React**, **Render for the Java backend**, and **Supabase for PostgreSQL**. Account connections and actual environment values are required before deployment can be verified. The laptop database is not exposed or uploaded by this setup.
 
-### Alternative: PostgreSQL on your existing Render account
+## 1. Backend database - Supabase
 
-If you prefer not to create a Neon account, create a Render Postgres instance in the same region as the Java backend. Choose Free only for the short jury demo: Render documents that free databases expire 30 days after creation. A longer-term deployment needs a non-expiring database arrangement. No paid plan or automatic upgrade is authorised by this repository configuration.
+Create or select a Supabase project intended for this warehouse demo. No MongoDB conversion or Supabase JavaScript SDK is needed: Spring Boot connects to PostgreSQL using JDBC. The frontend continues to call the protected Java API.
 
-Use the database's internal hostname and actual database name in `DB_URL` (`jdbc:postgresql://YOUR-INTERNAL-HOST:5432/YOUR-DATABASE`), and its role/password in `DB_USER` / `DB_PASSWORD`. Keep these values in Render's backend environment settings. The remaining frontend and authentication steps are identical. The Blueprint intentionally does not create a database until the hosting/retention choice is settled.
+Before the first backend deployment, apply `supabase/migrations/20261117000100_private_warehouse.sql` as the database owner. It creates the private `warehouse` schema and removes access for public/Data API roles. It does not create business records or delete existing data. Do not add `warehouse` to Supabase's exposed Data API schemas. Hibernate creates the application tables inside this schema when the cloud app starts.
 
-Reference: https://render.com/docs/free
+In Supabase, open **Connect** and select **Session pooler**. Copy the exact host and username shown there. This mode supports IPv4 and prepared statements for the persistent Java backend. Use the session pooler port **5432**, rather than transaction pooler port 6543. Do not guess the pooler host from the project region.
 
-## 1. Backend database — Neon
-
-Create a PostgreSQL project in your Neon account. Use an empty database for the hosted demo. Copy the connection details into the backend hosting settings, not into source files or Vercel frontend variables:
+Set these variables only in Render's backend environment settings:
 
 | Render variable | Value |
 |---|---|
-| `DB_URL` | `jdbc:postgresql://YOUR-NEON-HOST/neondb?sslmode=require` |
-| `DB_USER` | Your Neon database role |
-| `DB_PASSWORD` | Your Neon database password |
+| `DB_URL` | `jdbc:postgresql://YOUR-SESSION-POOLER-HOST:5432/postgres?sslmode=require` |
+| `DB_USER` | The session pooler username, usually `postgres.YOUR-PROJECT-REF` |
+| `DB_PASSWORD` | Your Supabase database password |
+| `DB_SCHEMA` | `warehouse` |
 
-Use the actual database name if it differs from `neondb`. Do not use a password-embedded PostgreSQL URI as the JDBC URL; keep username and password separate.
+Copy the actual database name/role if they differ. Do not embed the password in the JDBC URL. Supabase publishable/anon keys and service-role keys are not JDBC credentials and are not needed by this frontend. Never put database credentials in Vercel `VITE_` variables.
+
+The cloud profile defaults to schema `warehouse`; local development still uses its existing schema. A Supabase project is not created or connected merely by committing these settings. No paid plan, add-on, or automatic upgrade is authorised.
+
+References: https://supabase.com/docs/guides/database/connecting-to-postgres and https://supabase.com/docs/guides/api/using-custom-schemas
 
 ## 2. Java backend — Render
 
@@ -64,7 +67,7 @@ Once Vercel assigns the final URL, update `CORS_ALLOWED_ORIGINS` in Render to th
 3. Sign in with the operator account configured in Render.
 4. Run the receipt → storage → order → reserve → pick → pack → dispatch workflow.
 5. Verify the final balance, audit history, and ERP confirmation queue.
-6. Restart the Render service and verify persistence in Neon.
+6. Restart the Render service and verify persistence in Supabase.
 7. Confirm sign-out closes the workspace. Refreshing requires sign-in again.
 
 These are live cloud verification steps. Local builds and tests do not prove a cloud deployment is working.

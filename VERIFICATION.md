@@ -40,3 +40,10 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Backend suite: 13 tests passed (9 warehouse workflow tests and 4 access-control tests). Frontend suite: 10 tests passed, including sign-in, failed sign-in, sign-out, and no browser-storage credentials. Frontend production build passed.
 - Docker Desktop's engine was not running, so a container image build was not verified locally. Cloud runtime, database connection, HTTPS/CORS, and online persistence still require the connected hosting accounts and actual deployment values.
 - Local unauthenticated mode remains available only for loopback development. The cloud profile requires configured credentials before starting. Shared operator access is not per-user RBAC.
+
+## Supabase PostgreSQL selection ? 17 November 2026
+
+- Selected Supabase in deployment instructions and configured hosted JPA tables in the private `warehouse` schema. The Render Blueprint supplies `DB_SCHEMA=warehouse`; credentials stay in backend environment settings.
+- Added an idempotent schema-permission migration. Its SQL ran successfully on the isolated local test database; the schema ACL retained only the database owner. Supabase-specific roles are handled when present.
+- Backend suite: 14 tests passed, including an authenticated cloud-profile write into a separate schema. These local PostgreSQL checks do not verify a live Supabase connection or its dashboard API settings.
+- No Supabase project or live connection has been provisioned; account connection is pending. Local demo inventory was not modified.
