@@ -16,7 +16,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.security.enabled=false")
 @AutoConfigureMockMvc
 class WorkflowIntegrationTest {
   @DynamicPropertySource

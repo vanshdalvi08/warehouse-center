@@ -131,7 +131,7 @@ function OrderDetails({ order }) {
     </div>
   );
 }
-export function Inbound({ orders, mutate, selectedId = "" }) {
+export function Inbound({ orders, mutate, selectedId = "", readOnly = false }) {
   const [id, setId] = useState(selectedId);
   useEffect(() => {
     setId(selectedId);
@@ -146,7 +146,7 @@ export function Inbound({ orders, mutate, selectedId = "" }) {
         <OrderSelect {...{ orders, id, setId }} />
         {order && <OrderDetails order={order} />}
       </Panel>
-      {order && order.status !== "RECEIVED" && (
+      {!readOnly && order && order.status !== "RECEIVED" && (
         <Panel
           title="Receive against purchase order"
           description="Scan or type the barcode. Over-receipts and mismatched products are rejected."
@@ -208,7 +208,13 @@ export function Inbound({ orders, mutate, selectedId = "" }) {
     </>
   );
 }
-export function Outbound({ orders, mutate, onError, selectedId = "" }) {
+export function Outbound({
+  orders,
+  mutate,
+  onError,
+  selectedId = "",
+  readOnly = false,
+}) {
   const [id, setId] = useState(selectedId),
     [tasks, setTasks] = useState([]),
     [fetching, setFetching] = useState(false);
@@ -260,7 +266,7 @@ export function Outbound({ orders, mutate, onError, selectedId = "" }) {
         <OrderSelect {...{ orders, id, setId }} />
         {order && <OrderDetails order={order} />}
       </Panel>
-      {order && (
+      {order && !readOnly && (
         <>
           <div className="steps">
             {["OPEN", "ALLOCATED", "PICKED", "PACKED", "SHIPPED"].map(

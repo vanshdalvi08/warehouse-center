@@ -60,6 +60,20 @@ switch ($Mode) {
                 $env:DB_URL = "jdbc:postgresql://127.0.0.1:55432/warehouse_center"
                 $env:DB_USER = "warehouse_demo"
                 $env:DB_PASSWORD = ""
+                $accessFile = Join-Path $runtimeRoot "local-access.json"
+                if (-not $env:APP_PASSWORD) {
+                    if (-not (Test-Path $accessFile)) {
+                        $randomBytes = New-Object byte[] 24
+                        $generator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+                        try { $generator.GetBytes($randomBytes) } finally { $generator.Dispose() }
+                        $localPassword = "WC-" + [Convert]::ToBase64String($randomBytes)
+                        @{username="admin";password=$localPassword} | ConvertTo-Json | Set-Content -LiteralPath $accessFile -Encoding UTF8
+                    }
+                    $localAccess = Get-Content -LiteralPath $accessFile -Raw | ConvertFrom-Json
+                    $env:APP_USERNAME = $localAccess.username
+                    $env:APP_PASSWORD = $localAccess.password
+                }
+                Write-Host "Authentication enabled. Initial local administrator details: $accessFile"
                 Invoke-Checked ".\mvnw.cmd" @("-B", "-ntp", "spring-boot:run")
             } elseif ($Mode -eq "test") {
                 $env:TEST_DB_URL = "jdbc:postgresql://127.0.0.1:55432/warehouse_center_test"

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Boxes, ArrowRight } from "lucide-react";
 import { api, setAuthorization, Field } from "./ui";
+import { AccessContext } from "./AccessContext";
 
 export function AccessGate({ children }) {
   const [state, setState] = useState("checking"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [username, setUsername] = useState("");
+    [user, setUser] = useState(null);
   async function check() {
     setError("");
     setState("checking");
@@ -41,7 +42,7 @@ export function AccessGate({ children }) {
     );
     try {
       const user = await api("/auth/me");
-      setUsername(user.username);
+      setUser(user);
       setState("authenticated");
     } catch {
       setAuthorization("");
@@ -53,24 +54,40 @@ export function AccessGate({ children }) {
       setBusy(false);
     }
   }
-  if (state === "local") return children;
+  if (state === "local")
+    return (
+      <AccessContext.Provider
+        value={{ username: "local-demo-operator", role: "ADMIN" }}
+      >
+        {children}
+      </AccessContext.Provider>
+    );
   if (state === "authenticated")
     return (
-      <>
+      <AccessContext.Provider value={user}>
         <div className="access-session">
-          <span>Signed in as {username}</span>
+          <span>
+            {user.displayName || user.username} · {user.role || "OPERATOR"}
+          </span>
           <button
-            onClick={() => {
-              setAuthorization("");
-              setState("login");
-              setError("");
+            onClick={async () => {
+              try {
+                await api("/auth/sign-out", "POST", {});
+              } catch {
+                /* Always clear local credentials. */
+              } finally {
+                setAuthorization("");
+                setUser(null);
+                setState("login");
+                setError("");
+              }
             }}
           >
             Sign out
           </button>
         </div>
         {children}
-      </>
+      </AccessContext.Provider>
     );
   return (
     <div className="access-screen">

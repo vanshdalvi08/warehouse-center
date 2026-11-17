@@ -47,3 +47,10 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Added an idempotent schema-permission migration. Its SQL ran successfully on the isolated local test database; the schema ACL retained only the database owner. Supabase-specific roles are handled when present.
 - Backend suite: 14 tests passed, including an authenticated cloud-profile write into a separate schema. These local PostgreSQL checks do not verify a live Supabase connection or its dashboard API settings.
 - No Supabase project or live connection has been provisioned; account connection is pending. Local demo inventory was not modified.
+
+## Individual accounts and roles ? 18 November 2026
+
+- Added persistent users, BCrypt hashes, Admin/Operator/Auditor permissions, account create/update/deactivate/reset/unlock, failed-login lockouts and an append-only access audit API.
+- Authentication is enabled by default locally and hosted. Local bootstrap credentials are generated into an ignored runtime file; no known password or local data is added to Git.
+- Backend: 22 tests passed, including operator permission checks, read-only auditor denial, immediate deactivation/reset/role-change effects, lockouts, bootstrap persistence and receipt actor identity. Frontend: 14 tests passed, including role-filtered navigation and administrator account creation. Production frontend build passed.
+- Device registration, full specialist FDD roles, SSO/MFA and idle sessions remain deferred. Browser visual verification was not performed; HTTP and component interaction checks cover this update.

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useAccess } from "./AccessContext";
 import { ArrowRight, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { Badge, Panel, Table } from "./ui";
 
 export function Overview({ data, stockTable, openOrder, navigate }) {
+  const { role } = useAccess();
   const [filter, setFilter] = useState("All orders");
   const { inventory, purchase, sales, transactions, messages } = data;
   const total = inventory.reduce((n, i) => n + i.quantity, 0),
@@ -33,7 +35,7 @@ export function Overview({ data, stockTable, openOrder, navigate }) {
           </div>
         ))}
       </div>
-      {failed > 0 && (
+      {failed > 0 && role === "ADMIN" && (
         <div className="exception-strip">
           <span>
             {failed} ERP{" "}
@@ -51,12 +53,14 @@ export function Overview({ data, stockTable, openOrder, navigate }) {
         title="Order queue"
         description={`${orders.length} orders recorded`}
         action={
-          <button
-            className="text-button"
-            onClick={() => navigate("Start here")}
-          >
-            New workflow <ArrowRight size={14} />
-          </button>
+          role === "ADMIN" && (
+            <button
+              className="text-button"
+              onClick={() => navigate("Start here")}
+            >
+              New workflow <ArrowRight size={14} />
+            </button>
+          )
         }
       >
         <div className="table-toolbar">

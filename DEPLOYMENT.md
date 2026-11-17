@@ -35,7 +35,7 @@ Connect the private GitHub repository to Render. Create a Blueprint from the rep
 - `SPRING_PROFILES_ACTIVE=cloud`
 - `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=55 -XX:+ExitOnOutOfMemoryError`
 - The database settings above.
-- `APP_USERNAME=operator` (or your chosen username).
+- `APP_USERNAME=admin` (or your chosen initial administrator username).
 - `APP_PASSWORD`: a unique password of at least 12 characters, set only in Render's secret environment settings.
 - `CORS_ALLOWED_ORIGINS`: the exact frontend origin, such as `https://your-project.vercel.app`. A comma-separated list can be used for explicitly approved origins; do not use `*`.
 
@@ -43,7 +43,7 @@ The Blueprint requests Render's free plan; it does not authorize a paid upgrade.
 
 The `cloud` profile binds to `0.0.0.0` and uses the hosting platform's `PORT`. It requires authentication for all application API routes except health and access-status checks. Missing access credentials prevent startup. Always use the HTTPS backend URL supplied by Render.
 
-The hosted app currently uses **one configured operator account**, backed by Spring Security and a BCrypt password hash in memory. Credentials are kept only in frontend JavaScript memory while signed in, sent over HTTPS with the HTTP Authorization header, and cleared by sign-out or page reload. This is shared-demo access control, not per-user RBAC, account registration, or password recovery. Browser storage holds workflow progress only, not passwords.
+Individual users, roles, active status and BCrypt password hashes are stored in PostgreSQL. `APP_USERNAME` / `APP_PASSWORD` bootstrap the initial administrator only when the user table is empty. Subsequent restarts do not reset accounts. Manage users through **Users & access**; see [AUTHENTICATION.md](AUTHENTICATION.md). Frontend credentials remain in memory and are cleared by sign-out or refresh. This provides server-enforced Admin / Operator / Auditor access, without claiming the full FDD role set or device registry.
 
 ## 3. React frontend — Vercel
 
@@ -64,7 +64,7 @@ Once Vercel assigns the final URL, update `CORS_ALLOWED_ORIGINS` in Render to th
 
 1. Open the Vercel site; the hosted sign-in screen should appear.
 2. Confirm that unauthenticated `GET /api/inventory` and `POST /api/demo/seed` return 401 on the backend.
-3. Sign in with the operator account configured in Render.
+3. Sign in with the initial administrator, then create individual operator/auditor accounts.
 4. Run the receipt → storage → order → reserve → pick → pack → dispatch workflow.
 5. Verify the final balance, audit history, and ERP confirmation queue.
 6. Restart the Render service and verify persistence in Supabase.
@@ -74,12 +74,12 @@ These are live cloud verification steps. Local builds and tests do not prove a c
 
 ## Local development stays available
 
-`Dev.ps1 backend` uses the dedicated laptop PostgreSQL cluster and does not enable hosted authentication. The frontend asks `/api/auth/status` before opening the workspace. Restart the backend after pulling this change so that the new access-status endpoint exists.
+`Dev.ps1 backend` uses the dedicated laptop PostgreSQL cluster and enables database-backed authentication. It saves initial local administrator details in ignored `.runtime/local-access.json`. The frontend asks `/api/auth/status` before opening the workspace. Restart the backend after pulling this change so that the new access-status endpoint exists.
 
-To test protected mode locally, set `APP_SECURITY_ENABLED=true`, `APP_SECURITY_USERNAME`, and `APP_SECURITY_PASSWORD` before running the backend. Use a disposable local test password and keep it out of Git. The cloud profile reads `APP_USERNAME` / `APP_PASSWORD` instead.
+For direct Maven startup, set `APP_USERNAME` and `APP_PASSWORD` for the first administrator bootstrap. Do not change these environment values to reset an existing account; use user administration instead.
 
 ## Checks and limitations
 
 GitHub Actions runs the backend tests against a disposable PostgreSQL container, then frontend interaction tests and a production build. Local integration tests use the separate `warehouse_center_test` database. Docker itself must be running to validate a local container build.
 
-The hosted schema still uses Hibernate `ddl-auto=update` for this jury MVP. Production migrations, per-user permissions, abuse throttling, operational monitoring, and a backup policy are separate work. Do not treat this as a production warehouse deployment.
+The hosted schema still uses Hibernate `ddl-auto=update` for this jury MVP. Production migrations, full FDD role specialization, distributed abuse throttling, operational monitoring, and a backup policy are separate work. Do not treat this as a production warehouse deployment.

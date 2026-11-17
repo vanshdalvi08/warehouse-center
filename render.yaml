@@ -12,7 +12,7 @@ services:
       - key: JAVA_TOOL_OPTIONS
         value: -XX:MaxRAMPercentage=55 -XX:+ExitOnOutOfMemoryError
       - key: APP_USERNAME
-        value: operator
+        value: admin
       - key: APP_PASSWORD
         sync: false
       - key: DB_URL

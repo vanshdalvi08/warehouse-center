@@ -27,6 +27,10 @@ To run frontend interaction tests: `cd frontend` then `npm test`.
 
 Cloud deployment configuration and protected sign-in are described in [DEPLOYMENT.md](DEPLOYMENT.md). Vercel hosts the frontend; Render runs Spring Boot; Supabase stores PostgreSQL data. Cloud deployment still requires connected accounts and backend environment settings.
 
+## Authentication
+
+Sign-in, role-based access and administrator user management are implemented. Read [AUTHENTICATION.md](AUTHENTICATION.md) for the Admin / Operator / Auditor permissions and local login instructions.
+
 ## Run on this Windows laptop
 
 Open PowerShell in this directory (`warehouse-center`, which contains `Dev.ps1`). Java 21, Node 20+, and PostgreSQL must be installed. Maven is provided by the committed Maven wrapper; its first run and `npm ci` need internet access.
@@ -47,7 +51,7 @@ Open **http://127.0.0.1:5173**. Backend health: http://127.0.0.1:8080/api/health
 
 The backend command automatically starts a **separate real PostgreSQL cluster** in `.runtime/pgdata` on `127.0.0.1:55432`. It creates `warehouse_center` and a separate `warehouse_center_test` database. It does not change your PostgreSQL Windows service on port 5432. Data remains on disk after closing or restarting the app.
 
-This dedicated demo cluster uses local trust authentication and binds only to loopback. The application also binds to loopback and has no login. Use it locally for the jury; production security is deferred.
+This dedicated demo cluster uses local trust authentication and binds only to loopback. The application binds to loopback and requires sign-in. Initial local login details are in `.runtime/local-access.json` after the first `Dev.ps1 backend` start. See [AUTHENTICATION.md](AUTHENTICATION.md) for roles and user administration.
 
 If PostgreSQL is installed elsewhere:
 
@@ -79,7 +83,7 @@ On macOS/Linux use `./mvnw spring-boot:run` with the equivalent exported environ
 
 ## Five-minute jury walkthrough
 
-1. **ERP simulator → Prepare demo data.** This creates product `WM-101` / Wireless Mouse / barcode `WM101`, receiving dock `RECV-01`, storage bin `A-01`, and packing lane `PACK-01`. It creates no stock. Repeating this action preserves existing data.
+1. Sign in as administrator. **ERP simulator → Prepare demo data.** This creates product `WM-101` / Wireless Mouse / barcode `WM101`, receiving dock `RECV-01`, storage bin `A-01`, and packing lane `PACK-01`. It creates no stock. Repeating this action preserves existing data.
 2. Import a purchase order: reference `PO-1001`, a supplier name, product WM-101, quantity **50**. References must be unique; use a new reference for a repeat demo.
 3. **Inbound:** select the PO. First try barcode `BAD123`: it is rejected without changing inventory. Then enter `WM101`, location `RECV-01`, quantity **50**. The order becomes RECEIVED.
 4. **Inventory:** move `WM101`, source `RECV-01`, destination `A-01`, quantity **50**. On hand remains 50. On Locations, you can block A-01 and demonstrate that put-away to it is rejected; unblock it before continuing.
@@ -127,7 +131,7 @@ The actual results and remaining verification limits are in [VERIFICATION.md](VE
 - Receiving/movements require an `operationKey`. Identical retries return success without reapplying stock; reusing a key with another payload returns 409. Failed operations roll back their key, stock, order updates, ledger, and outbox writes.
 - Business writes run in Spring transactions. A PostgreSQL transaction advisory lock serializes warehouse mutations, including creation of previously absent inventory rows. `@Version`, database uniqueness, and inventory quantity/reservation checks provide additional integrity. The coarse lock is an MVP throughput tradeoff.
 - Ledger events and their ERP messages commit together. New ERP messages link to the exact ledger transaction and carry a unique transaction key. Simulated ERP acknowledgement never repeats the warehouse operation.
-- Audit rows have timestamps, SKU, quantity, source/destination, reference, and correlation. Actor/device are explicitly **demo labels**, not authenticated identities. There are no application endpoints to edit/delete the ledger.
+- Audit rows have timestamps, SKU, quantity, source/destination, reference, and correlation. Actor is the authenticated username; device identity remains a demo label. There are no application endpoints to edit/delete the ledger.
 
 ## API
 
@@ -171,6 +175,6 @@ Hibernate `ddl-auto=update` is retained for the local MVP. Existing products, lo
 
 Implemented: persistent masters and stock, order-backed receipt, storage movements, capacity/blocking, multi-line imports, allocation, multi-bin tasks, scan checks, packing/staging, dispatch, audit, label preview, and ERP failure/retry simulation.
 
-Simulated: enterprise ERP, operator identity, and device identity. No SAP/Oracle integration or background external delivery is claimed.
+Simulated: enterprise ERP and device identity. Individual operator accounts are stored in PostgreSQL. No SAP/Oracle integration or background external delivery is claimed.
 
-Deferred: login/RBAC, QA holds/releases, license plates, lots/serials/expiry/FEFO, partial allocations/backorders/partial shipments, cancellation and reservation release, returns, cycle counts, offline/camera scanning, advanced reporting, separate loading dock workflows, production migrations and deployment hardening. Physical scanner/printer hardware has not been tested. The FDD accuracy targets are not claimed as achieved.
+Deferred: full FDD role specialization and device registration, QA holds/releases, license plates, lots/serials/expiry/FEFO, partial allocations/backorders/partial shipments, cancellation and reservation release, returns, cycle counts, offline/camera scanning, advanced reporting, separate loading dock workflows, production migrations and deployment hardening. Physical scanner/printer hardware has not been tested. The FDD accuracy targets are not claimed as achieved.

@@ -15,6 +15,7 @@ import {
   X,
   PlugZap,
   Search,
+  Users,
 } from "lucide-react";
 import JsBarcode from "jsbarcode";
 import { api, Badge, Table, Field, Form, Panel } from "./ui";
@@ -22,6 +23,8 @@ import { OrderEditor, Inbound, Outbound } from "./workflows";
 import { GuidedWorkflow } from "./GuidedWorkflow";
 import { Overview } from "./Overview";
 import { AccessGate } from "./AccessGate";
+import { useAccess } from "./AccessContext";
+import { UserManagement, AccessHistory } from "./UserManagement";
 import "./index.css";
 const labels = { "Start here": "Workflow", "ERP simulator": "ERP simulator" };
 const pageTitle = (tab) => labels[tab] || tab;
@@ -35,9 +38,14 @@ const nav = [
   ["Outbound", ArrowUpFromLine],
   ["Audit trail", History],
   ["ERP simulator", PlugZap],
+  ["Users & access", Users],
+  ["Access history", History],
 ];
-function App() {
-  const [tab, setTab] = useState("Start here"),
+export function App() {
+  const user = useAccess();
+  const isAdmin = user.role === "ADMIN",
+    readOnly = user.role === "AUDITOR";
+  const [tab, setTab] = useState(isAdmin ? "Start here" : "Overview"),
     [data, setData] = useState({
       products: [],
       locations: [],
@@ -204,6 +212,14 @@ function App() {
         <div className="nav-caption">Operations</div>
         <nav>
           {nav
+            .filter(([n]) =>
+              isAdmin
+                ? n !== "Access history"
+                : !["Start here", "Users & access", "ERP simulator"].includes(
+                    n,
+                  ) &&
+                  (n !== "Access history" || readOnly),
+            )
             .filter(
               ([n]) =>
                 n === tab ||
@@ -295,6 +311,10 @@ function App() {
                       "Reserve, pick, verify, and dispatch customer orders.",
                     "Audit trail":
                       "An append-only record of warehouse execution.",
+                    "Users & access":
+                      "Manage individual accounts, roles, and account status.",
+                    "Access history":
+                      "Review account changes and access decisions.",
                     "ERP simulator":
                       "Import demo orders and simulate outbound confirmations.",
                   }[tab]
@@ -322,7 +342,9 @@ function App() {
             </div>
           )}
           <fieldset disabled={busy || loading || !online} className="workspace">
-            {tab === "Start here" && (
+            {tab === "Users & access" && isAdmin && <UserManagement />}
+            {tab === "Access history" && readOnly && <AccessHistory />}
+            {tab === "Start here" && isAdmin && (
               <GuidedWorkflow
                 data={data}
                 mutate={mutate}
@@ -340,27 +362,29 @@ function App() {
             )}
             {tab === "Products" && (
               <>
-                <Panel title="Register a product">
-                  <Form
-                    className="four-col"
-                    onSubmit={(v) =>
-                      mutate("/products", v, "Product registered")
-                    }
-                    label="Add product"
-                  >
-                    <Field label="SKU" name="sku" placeholder="WM-101" />
-                    <Field
-                      label="Product name"
-                      name="name"
-                      placeholder="Wireless Mouse"
-                    />
-                    <Field
-                      label="Item barcode"
-                      name="barcode"
-                      placeholder="WM101"
-                    />
-                  </Form>
-                </Panel>
+                {isAdmin && (
+                  <Panel title="Register a product">
+                    <Form
+                      className="four-col"
+                      onSubmit={(v) =>
+                        mutate("/products", v, "Product registered")
+                      }
+                      label="Add product"
+                    >
+                      <Field label="SKU" name="sku" placeholder="WM-101" />
+                      <Field
+                        label="Product name"
+                        name="name"
+                        placeholder="Wireless Mouse"
+                      />
+                      <Field
+                        label="Item barcode"
+                        name="barcode"
+                        placeholder="WM101"
+                      />
+                    </Form>
+                  </Panel>
+                )}
                 <Panel title="Product master">
                   <Table
                     headers={["SKU", "Product", "Barcode", "Label"]}
@@ -383,41 +407,43 @@ function App() {
             )}
             {tab === "Locations" && (
               <>
-                <Panel title="Register a location">
-                  <Form
-                    className="three-col"
-                    onSubmit={(v) =>
-                      mutate(
-                        "/locations",
-                        { ...v, capacity: Number(v.capacity), active: true },
-                        "Location created",
-                      )
-                    }
-                    label="Add location"
-                  >
-                    <Field
-                      label="Location code / barcode"
-                      name="code"
-                      placeholder="A-02"
-                    />
-                    <Field
-                      label="Description"
-                      name="description"
-                      placeholder="Aisle A, bin 02"
-                    />
-                    <Field label="Location type" name="type">
-                      {["STORAGE", "RECEIVING", "PACKING"].map((x) => (
-                        <option key={x}>{x}</option>
-                      ))}
-                    </Field>
-                    <Field
-                      label="Capacity (units)"
-                      name="capacity"
-                      type="number"
-                      defaultValue="10000"
-                    />
-                  </Form>
-                </Panel>
+                {isAdmin && (
+                  <Panel title="Register a location">
+                    <Form
+                      className="three-col"
+                      onSubmit={(v) =>
+                        mutate(
+                          "/locations",
+                          { ...v, capacity: Number(v.capacity), active: true },
+                          "Location created",
+                        )
+                      }
+                      label="Add location"
+                    >
+                      <Field
+                        label="Location code / barcode"
+                        name="code"
+                        placeholder="A-02"
+                      />
+                      <Field
+                        label="Description"
+                        name="description"
+                        placeholder="Aisle A, bin 02"
+                      />
+                      <Field label="Location type" name="type">
+                        {["STORAGE", "RECEIVING", "PACKING"].map((x) => (
+                          <option key={x}>{x}</option>
+                        ))}
+                      </Field>
+                      <Field
+                        label="Capacity (units)"
+                        name="capacity"
+                        type="number"
+                        defaultValue="10000"
+                      />
+                    </Form>
+                  </Panel>
+                )}
                 <Panel title="Warehouse map">
                   <Table
                     headers={[
@@ -443,18 +469,20 @@ function App() {
                         >
                           <Printer size={15} /> Label
                         </button>
-                        <button
-                          className="text-button"
-                          onClick={() =>
-                            mutate(
-                              `/locations/${l.id}/state`,
-                              { active: !l.active },
-                              "Location status updated",
-                            )
-                          }
-                        >
-                          {l.active ? "Block" : "Unblock"}
-                        </button>
+                        {isAdmin && (
+                          <button
+                            className="text-button"
+                            onClick={() =>
+                              mutate(
+                                `/locations/${l.id}/state`,
+                                { active: !l.active },
+                                "Location status updated",
+                              )
+                            }
+                          >
+                            {l.active ? "Block" : "Unblock"}
+                          </button>
+                        )}
                       </div>,
                     ])}
                   />
@@ -466,6 +494,7 @@ function App() {
                 orders={purchase}
                 mutate={mutate}
                 selectedId={focusOrder}
+                readOnly={readOnly}
               />
             )}
             {tab === "Inventory" && (
@@ -476,44 +505,46 @@ function App() {
                 >
                   {stockTable()}
                 </Panel>
-                <Panel
-                  title="Put away / transfer"
-                  description="Scan the product, source, and an active storage destination."
-                >
-                  <Form
-                    className="three-col"
-                    onSubmit={(v) =>
-                      mutate(
-                        "/putaway",
-                        { ...v, quantity: Number(v.quantity) },
-                        "Stock moved; warehouse total is unchanged",
-                      )
-                    }
-                    label="Confirm movement"
+                {!readOnly && (
+                  <Panel
+                    title="Put away / transfer"
+                    description="Scan the product, source, and an active storage destination."
                   >
-                    <Field
-                      label="Product barcode"
-                      name="barcode"
-                      placeholder="Scan item"
-                    />
-                    <Field
-                      label="Source location scan"
-                      name="sourceCode"
-                      placeholder="RECV-01"
-                    />
-                    <Field
-                      label="Destination location scan"
-                      name="destinationCode"
-                      placeholder="A-01"
-                    />
-                    <Field
-                      label="Quantity"
-                      name="quantity"
-                      type="number"
-                      defaultValue="50"
-                    />
-                  </Form>
-                </Panel>
+                    <Form
+                      className="three-col"
+                      onSubmit={(v) =>
+                        mutate(
+                          "/putaway",
+                          { ...v, quantity: Number(v.quantity) },
+                          "Stock moved; warehouse total is unchanged",
+                        )
+                      }
+                      label="Confirm movement"
+                    >
+                      <Field
+                        label="Product barcode"
+                        name="barcode"
+                        placeholder="Scan item"
+                      />
+                      <Field
+                        label="Source location scan"
+                        name="sourceCode"
+                        placeholder="RECV-01"
+                      />
+                      <Field
+                        label="Destination location scan"
+                        name="destinationCode"
+                        placeholder="A-01"
+                      />
+                      <Field
+                        label="Quantity"
+                        name="quantity"
+                        type="number"
+                        defaultValue="50"
+                      />
+                    </Form>
+                  </Panel>
+                )}
               </>
             )}
             {tab === "Outbound" && (
@@ -522,16 +553,18 @@ function App() {
                 mutate={mutate}
                 onError={setError}
                 selectedId={focusOrder}
+                readOnly={readOnly}
               />
             )}
             {tab === "Audit trail" && (
               <Panel
                 title="Stock transaction ledger"
-                description="Demo actor: local-demo-operator · Local timezone"
+                description="Recorded warehouse movements and authenticated actors"
               >
                 <Table
                   headers={[
                     "Event",
+                    "Actor",
                     "Reference",
                     "SKU",
                     "From → To",
@@ -543,6 +576,7 @@ function App() {
                     .reverse()
                     .map((t) => [
                       <Badge>{t.type}</Badge>,
+                      t.actor,
                       t.reference || "—",
                       t.sku,
                       `${t.sourceLocation || "—"} → ${t.destinationLocation || "—"}`,
@@ -553,7 +587,7 @@ function App() {
                 />
               </Panel>
             )}
-            {tab === "ERP simulator" && (
+            {tab === "ERP simulator" && isAdmin && (
               <>
                 <div className="sim-note">
                   <PlugZap size={19} />
@@ -698,8 +732,10 @@ function BarcodeLabel({ label, close }) {
     </div>
   );
 }
-createRoot(document.getElementById("root")).render(
-  <AccessGate>
-    <App />
-  </AccessGate>,
-);
+const root = document.getElementById("root");
+if (root)
+  createRoot(root).render(
+    <AccessGate>
+      <App />
+    </AccessGate>,
+  );
