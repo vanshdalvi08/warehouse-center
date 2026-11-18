@@ -67,3 +67,9 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Added an accessible native-radio three-way toggle for Admin, Supervisor and Warehouse Operator, styled consistently with the minimal login screen.
 - The selected role is verified against the account on the backend, and the frontend also rejects a mismatched role response. Selection cannot grant or change permissions.
 - Backend: 27 tests passed. Frontend: 21 tests passed, including all three choices, supervisor sign-in and mismatch rejection. Production frontend build passed. Browser visual verification is not claimed.
+
+## Minimal warehouse sign-in background ? 18 November 2026
+
+- Added a decorative vector warehouse illustration with shelving, cartons, a loaded forklift and a packing station. The illustration is hidden from assistive technology, ignores pointer events and sits behind the opaque sign-in card.
+- Kept a quiet center, muted colors and lower mobile opacity. No external imagery, animation, or business logic changes were introduced.
+- The SVG was rendered to a local PNG and visually inspected. Frontend interaction tests (21) and the production build passed. This does not claim a complete browser-layout or mobile screenshot check.

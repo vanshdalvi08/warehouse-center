@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Boxes, ArrowRight } from "lucide-react";
 import { api, setAuthorization, Field } from "./ui";
 import { AccessContext, roleLabel } from "./AccessContext";
+import { WarehouseBackdrop } from "./WarehouseBackdrop";
 
 export function AccessGate({ children }) {
   const [state, setState] = useState("checking"),
@@ -101,6 +102,7 @@ export function AccessGate({ children }) {
     );
   return (
     <div className="access-screen">
+      <WarehouseBackdrop />
       <section className="access-panel">
         <div className="access-brand">
           <Boxes size={23} />
