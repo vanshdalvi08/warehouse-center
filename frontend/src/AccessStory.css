@@ -139,16 +139,17 @@
 }
 .access-slide-art {
   width: 100%;
-  aspect-ratio: 680/420;
+  aspect-ratio: 3/2;
   display: grid;
   place-items: center;
   min-height: 0;
 }
-.access-slide-art svg {
+.access-slide-art .warehouse-scene-image {
   width: 100%;
   height: auto;
   display: block;
-  overflow: visible;
+  object-fit: contain;
+  border-radius: 10px;
 }
 .access-slide-caption {
   display: flex;
@@ -246,53 +247,6 @@
   height: 1px;
   width: 15px;
   background: #cbd5e8;
-}
-.access-slide.is-active .scene-parcel {
-  animation: parcelFlow 4.5s ease-in-out infinite;
-}
-.access-slide.is-active .scene-pin {
-  animation: pinLift 5s ease-in-out infinite;
-}
-.access-slide.is-active .scene-route {
-  animation: routeFlow 6s linear infinite;
-}
-.access-slide.is-active .scene-scan {
-  animation: scanPulse 4s ease-in-out infinite;
-}
-.access-story.is-paused .access-slide * {
-  animation-play-state: paused !important;
-}
-@keyframes parcelFlow {
-  0%,
-  100% {
-    transform: translateX(-3px);
-  }
-  50% {
-    transform: translateX(5px);
-  }
-}
-@keyframes pinLift {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-@keyframes routeFlow {
-  to {
-    stroke-dashoffset: -48;
-  }
-}
-@keyframes scanPulse {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 1;
-  }
 }
 @media (min-width: 1600px) {
   .access-story-main {

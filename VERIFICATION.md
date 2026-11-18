@@ -79,3 +79,9 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Moved sign-in to the right and replaced the previous background with three original blue-and-white SVG scenes for receiving, storage and dispatch on the left. Scenes crossfade with subtle internal motion, manual navigation and pause/play controls.
 - Automatic changes pause during interaction, when the page is hidden, and for reduced-motion preferences. Narrow screens retain a compact brand header and prioritize the form.
 - All 24 frontend tests and the production build passed, including slideshow navigation, pause/resume, hidden-page and reduced-motion checks. The local Vite module responds successfully. Original artwork was rendered and visually inspected as a PNG; full browser-layout verification was unavailable.
+
+## Replacement warehouse artwork - 18 November 2026
+
+- Replaced the hand-coded character scenes with three original generated PNG illustrations showing barcode receiving, shelf storage and carton sealing with a delivery van in the background. Each output was visually reviewed for proportions, hands, object scale and relevant warehouse actions.
+- Kept the right-side form and carousel crossfades, manual controls, pause and reduced-motion behaviour. Removed obsolete SVG-specific movement styles and preserved each image's 3:2 aspect ratio without cropping.
+- All 24 frontend tests and the production build passed. All three local image URLs returned HTTP 200. Full browser-layout verification is not claimed. Generation prompts and asset details are saved alongside the images in ARTWORK.md.
