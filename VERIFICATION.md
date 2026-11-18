@@ -85,3 +85,9 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Replaced the hand-coded character scenes with three original generated PNG illustrations showing barcode receiving, shelf storage and carton sealing with a delivery van in the background. Each output was visually reviewed for proportions, hands, object scale and relevant warehouse actions.
 - Kept the right-side form and carousel crossfades, manual controls, pause and reduced-motion behaviour. Removed obsolete SVG-specific movement styles and preserved each image's 3:2 aspect ratio without cropping.
 - All 24 frontend tests and the production build passed. All three local image URLs returned HTTP 200. Full browser-layout verification is not claimed. Generation prompts and asset details are saved alongside the images in ARTWORK.md.
+
+## Viewport-sized sign-in layout - 18 November 2026
+
+- Constrained the desktop split screen to the dynamic viewport height, using shrinkable grid rows to reserve room for branding, headings, captions and slideshow controls. Images now contain within the remaining space instead of determining the page height from their width.
+- Added compact spacing for short desktop windows. The login column supports overflow for unusually short windows or additional errors; mobile keeps its naturally scrolling form layout.
+- Production frontend build and diff whitespace checks passed. This CSS-only adjustment does not change authentication or slideshow behaviour. Full browser screenshot verification is not claimed.
