@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Boxes, ArrowRight } from "lucide-react";
 import { api, setAuthorization, Field } from "./ui";
-import { AccessContext } from "./AccessContext";
+import { AccessContext, roleLabel } from "./AccessContext";
 
 export function AccessGate({ children }) {
   const [state, setState] = useState("checking"),
@@ -67,7 +67,8 @@ export function AccessGate({ children }) {
       <AccessContext.Provider value={user}>
         <div className="access-session">
           <span>
-            {user.displayName || user.username} · {user.role || "OPERATOR"}
+            {user.displayName || user.username} ·{" "}
+            {roleLabel(user.role || "WAREHOUSE_OPERATOR")}
           </span>
           <button
             onClick={async () => {

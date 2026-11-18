@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowRight, Check, Package, MapPin, Truck } from "lucide-react";
 import { api, Field, Form, Panel } from "./ui";
+import { useAccess } from "./AccessContext";
 
 const STORAGE_KEY = "warehouse-center-guided-v1";
 const steps = [
@@ -49,6 +50,7 @@ function Hint({ children }) {
 }
 
 export function GuidedWorkflow({ data, mutate, onError, navigate }) {
+  const isAdmin = useAccess().role === "ADMIN";
   const [guide, setGuide] = useState(readGuide);
   const [tasks, setTasks] = useState([]),
     [tasksLoading, setTasksLoading] = useState(false),
@@ -57,6 +59,11 @@ export function GuidedWorkflow({ data, mutate, onError, navigate }) {
   const po = purchase.find((o) => o.id === guide.poId);
   const so = sales.find((o) => o.id === guide.soId);
   const product = products.find((p) => p.id === guide.productId);
+  const mastersReady =
+    products.length > 0 &&
+    ["RECEIVING", "STORAGE", "PACKING"].every((type) =>
+      locations.some((l) => l.active && l.type === type),
+    );
   const onHand = inventory.reduce((n, i) => n + i.quantity, 0);
   const reserved = inventory.reduce((n, i) => n + i.reserved, 0);
   function save(patch) {
@@ -203,22 +210,32 @@ export function GuidedWorkflow({ data, mutate, onError, navigate }) {
                       does not clear existing stock. You can change the
                       quantities as you go.
                     </Hint>
+                    {!isAdmin && !mastersReady && (
+                      <Hint>
+                        An Admin must register a product, receiving location,
+                        storage bin and packing location before you start a
+                        workflow.
+                      </Hint>
+                    )}
                     <button
+                      disabled={!isAdmin && !mastersReady}
                       onClick={async () => {
                         if (
-                          await mutate(
+                          isAdmin &&
+                          !(await mutate(
                             "/demo/seed",
                             {},
                             "The sample product and locations are ready.",
-                          )
+                          ))
                         )
-                          save({
-                            step: 1,
-                            startedWith: onHand,
-                            poReference: reference("PO"),
-                            soReference: reference("SO"),
-                            cartonReference: reference("BOX"),
-                          });
+                          return;
+                        save({
+                          step: 1,
+                          startedWith: onHand,
+                          poReference: reference("PO"),
+                          soReference: reference("SO"),
+                          cartonReference: reference("BOX"),
+                        });
                       }}
                     >
                       Start workflow <ArrowRight size={16} />

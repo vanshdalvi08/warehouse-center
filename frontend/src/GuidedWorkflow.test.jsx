@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GuidedWorkflow } from "./GuidedWorkflow";
+import { AccessContext } from "./AccessContext";
 import { api } from "./ui";
 vi.mock("./ui", async (original) => ({ ...(await original()), api: vi.fn() }));
 const product = {
@@ -298,6 +299,28 @@ describe("guided warehouse workflow", () => {
       screen.getByRole("heading", { name: "8. Confirm dispatch" }),
     ).toBeTruthy();
     expect(screen.getByPlaceholderText("BOX-SAVED")).toBeTruthy();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("lets a supervisor start with existing masters without calling the admin seed endpoint", async () => {
+    const mutate = vi.fn(),
+      user = userEvent.setup();
+    render(
+      <AccessContext.Provider
+        value={{ username: "supervisor", role: "SUPERVISOR" }}
+      >
+        <GuidedWorkflow
+          data={initial()}
+          mutate={mutate}
+          onError={vi.fn()}
+          navigate={vi.fn()}
+        />
+      </AccessContext.Provider>,
+    );
+    await user.click(screen.getByRole("button", { name: /Start workflow/ }));
+    expect(
+      screen.getByRole("heading", { name: "1. Expected delivery" }),
+    ).toBeTruthy();
     expect(mutate).not.toHaveBeenCalled();
   });
 });

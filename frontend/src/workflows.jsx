@@ -214,6 +214,7 @@ export function Outbound({
   onError,
   selectedId = "",
   readOnly = false,
+  canAllocate = true,
 }) {
   const [id, setId] = useState(selectedId),
     [tasks, setTasks] = useState([]),
@@ -278,7 +279,7 @@ export function Outbound({
               ),
             )}
           </div>
-          {order.status === "OPEN" && (
+          {order.status === "OPEN" && canAllocate && (
             <Panel
               title="Allocate available stock"
               description="The entire order is reserved atomically. If any product is short, nothing is reserved."
@@ -295,6 +296,12 @@ export function Outbound({
                 Allocate order <ArrowRight size={15} />
               </button>
             </Panel>
+          )}
+          {order.status === "OPEN" && !canAllocate && (
+            <Panel
+              title="Awaiting supervisor allocation"
+              description="A Supervisor must reserve stock before you can pick this order."
+            />
           )}
           {fetching && <p>Loading pick tasks…</p>}
           {["ALLOCATED", "PICKING"].includes(order.status) &&

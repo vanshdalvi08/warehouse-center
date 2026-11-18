@@ -54,3 +54,10 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Authentication is enabled by default locally and hosted. Local bootstrap credentials are generated into an ignored runtime file; no known password or local data is added to Git.
 - Backend: 22 tests passed, including operator permission checks, read-only auditor denial, immediate deactivation/reset/role-change effects, lockouts, bootstrap persistence and receipt actor identity. Frontend: 14 tests passed, including role-filtered navigation and administrator account creation. Production frontend build passed.
 - Device registration, full specialist FDD roles, SSO/MFA and idle sessions remain deferred. Browser visual verification was not performed; HTTP and component interaction checks cover this update.
+
+## Three warehouse roles ? 18 November 2026
+
+- Updated account creation and API rules to Admin, Supervisor and Warehouse Operator. Supervisors manage orders, allocation, bin blocking and ERP retries; Warehouse Operators execute receiving, movements, picking, packing and dispatch. Only Admins manage users and create master data.
+- Supervisor navigation and the guided workflow use existing master data without calling the admin-only seed endpoint. Operators see an allocation-waiting state instead of an allocation action.
+- Legacy Operator accounts are renamed with credentials preserved; legacy Auditor accounts remain read-only until explicitly reassigned. Neither automatic elevation nor user deletion is performed.
+- Backend suite: 25 tests passed, including supervisor limits, operator allocation denial, role migration idempotency and legacy read-only protection. Frontend suite: 18 tests passed, covering the three assignable roles, supervisor menus, allocation waiting and supervisor workflow preparation.

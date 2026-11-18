@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api, Panel, Form, Field, Table, Badge } from "./ui";
-import { useAccess } from "./AccessContext";
+import { useAccess, roleLabel } from "./AccessContext";
 export function AccessHistory() {
   const [rows, setRows] = useState([]),
     [error, setError] = useState("");
@@ -103,9 +103,13 @@ export function UserManagement() {
               autoComplete="new-password"
             />
             <Field label="Role" name="role">
-              <option value="OPERATOR">Operator — warehouse execution</option>
-              <option value="AUDITOR">Auditor — read only</option>
-              <option value="ADMIN">Administrator — full access</option>
+              <option value="WAREHOUSE_OPERATOR">
+                Warehouse Operator - warehouse execution
+              </option>
+              <option value="SUPERVISOR">
+                Supervisor - orders and allocation
+              </option>
+              <option value="ADMIN">Admin - users and settings</option>
             </Field>
           </Form>
         </Panel>
@@ -118,7 +122,7 @@ export function UserManagement() {
             rows={users.map((u) => [
               u.username,
               u.displayName,
-              <Badge>{u.role}</Badge>,
+              <Badge>{roleLabel(u.role)}</Badge>,
               <Badge>
                 {!u.active
                   ? "Inactive"
@@ -174,10 +178,24 @@ export function UserManagement() {
                 defaultValue={editing.displayName}
                 maxLength={100}
               />
-              <Field label="Role" name="role" defaultValue={editing.role}>
-                <option>ADMIN</option>
-                <option>OPERATOR</option>
-                <option>AUDITOR</option>
+              <Field
+                label="Role"
+                name="role"
+                required
+                defaultValue={
+                  ["ADMIN", "SUPERVISOR", "WAREHOUSE_OPERATOR"].includes(
+                    editing.role,
+                  )
+                    ? editing.role
+                    : ""
+                }
+              >
+                <option value="" disabled>
+                  Choose a role
+                </option>
+                <option value="ADMIN">Admin</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="WAREHOUSE_OPERATOR">Warehouse Operator</option>
               </Field>
               <Field
                 label="Account status"

@@ -44,7 +44,10 @@ const nav = [
 export function App() {
   const user = useAccess();
   const isAdmin = user.role === "ADMIN",
-    readOnly = user.role === "AUDITOR";
+    canSupervise = isAdmin || user.role === "SUPERVISOR",
+    readOnly = !["ADMIN", "SUPERVISOR", "WAREHOUSE_OPERATOR"].includes(
+      user.role,
+    );
   const [tab, setTab] = useState(isAdmin ? "Start here" : "Overview"),
     [data, setData] = useState({
       products: [],
@@ -213,12 +216,13 @@ export function App() {
         <nav>
           {nav
             .filter(([n]) =>
-              isAdmin
-                ? n !== "Access history"
-                : !["Start here", "Users & access", "ERP simulator"].includes(
-                    n,
-                  ) &&
-                  (n !== "Access history" || readOnly),
+              n === "Users & access"
+                ? isAdmin
+                : n === "Access history"
+                  ? !isAdmin && (canSupervise || readOnly)
+                  : ["Start here", "ERP simulator"].includes(n)
+                    ? canSupervise
+                    : true,
             )
             .filter(
               ([n]) =>
@@ -343,8 +347,10 @@ export function App() {
           )}
           <fieldset disabled={busy || loading || !online} className="workspace">
             {tab === "Users & access" && isAdmin && <UserManagement />}
-            {tab === "Access history" && readOnly && <AccessHistory />}
-            {tab === "Start here" && isAdmin && (
+            {tab === "Access history" && (canSupervise || readOnly) && (
+              <AccessHistory />
+            )}
+            {tab === "Start here" && canSupervise && (
               <GuidedWorkflow
                 data={data}
                 mutate={mutate}
@@ -469,7 +475,7 @@ export function App() {
                         >
                           <Printer size={15} /> Label
                         </button>
-                        {isAdmin && (
+                        {canSupervise && (
                           <button
                             className="text-button"
                             onClick={() =>
@@ -554,6 +560,7 @@ export function App() {
                 onError={setError}
                 selectedId={focusOrder}
                 readOnly={readOnly}
+                canAllocate={canSupervise}
               />
             )}
             {tab === "Audit trail" && (
@@ -587,7 +594,7 @@ export function App() {
                 />
               </Panel>
             )}
-            {tab === "ERP simulator" && isAdmin && (
+            {tab === "ERP simulator" && canSupervise && (
               <>
                 <div className="sim-note">
                   <PlugZap size={19} />
@@ -598,17 +605,19 @@ export function App() {
                       connected.
                     </p>
                   </div>
-                  <button
-                    onClick={() =>
-                      mutate(
-                        "/demo/seed",
-                        {},
-                        "Demo master data ready: WM101, RECV-01, A-01, PACK-01",
-                      )
-                    }
-                  >
-                    Prepare demo data
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() =>
+                        mutate(
+                          "/demo/seed",
+                          {},
+                          "Demo master data ready: WM101, RECV-01, A-01, PACK-01",
+                        )
+                      }
+                    >
+                      Prepare demo data
+                    </button>
+                  )}
                 </div>
                 <div className="two-col">
                   <OrderEditor

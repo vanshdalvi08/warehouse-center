@@ -5,6 +5,7 @@ import { Badge, Panel, Table } from "./ui";
 
 export function Overview({ data, stockTable, openOrder, navigate }) {
   const { role } = useAccess();
+  const canSupervise = ["ADMIN", "SUPERVISOR"].includes(role);
   const [filter, setFilter] = useState("All orders");
   const { inventory, purchase, sales, transactions, messages } = data;
   const total = inventory.reduce((n, i) => n + i.quantity, 0),
@@ -35,7 +36,7 @@ export function Overview({ data, stockTable, openOrder, navigate }) {
           </div>
         ))}
       </div>
-      {failed > 0 && role === "ADMIN" && (
+      {failed > 0 && canSupervise && (
         <div className="exception-strip">
           <span>
             {failed} ERP{" "}
@@ -53,7 +54,7 @@ export function Overview({ data, stockTable, openOrder, navigate }) {
         title="Order queue"
         description={`${orders.length} orders recorded`}
         action={
-          role === "ADMIN" && (
+          canSupervise && (
             <button
               className="text-button"
               onClick={() => navigate("Start here")}

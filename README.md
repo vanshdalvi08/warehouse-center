@@ -29,7 +29,7 @@ Cloud deployment configuration and protected sign-in are described in [DEPLOYMEN
 
 ## Authentication
 
-Sign-in, role-based access and administrator user management are implemented. Read [AUTHENTICATION.md](AUTHENTICATION.md) for the Admin / Operator / Auditor permissions and local login instructions.
+Sign-in, role-based access and administrator user management are implemented. Read [AUTHENTICATION.md](AUTHENTICATION.md) for the Admin / Supervisor / Warehouse Operator permissions and local login instructions.
 
 ## Run on this Windows laptop
 

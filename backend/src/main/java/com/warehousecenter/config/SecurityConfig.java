@@ -70,26 +70,29 @@ public class SecurityConfig {
                 return;
               }
               auth.requestMatchers(HttpMethod.GET, "/api/users/audit")
-                  .hasAnyRole("ADMIN", "AUDITOR");
+                  .hasAnyRole("ADMIN", "SUPERVISOR", "AUDITOR");
               auth.requestMatchers("/api/users", "/api/users/**").hasRole("ADMIN");
               auth.requestMatchers(HttpMethod.POST, "/api/auth/sign-out").authenticated();
               auth.requestMatchers(
                       HttpMethod.POST,
                       "/api/purchase-orders/*/receive",
                       "/api/putaway",
-                      "/api/sales-orders/*/allocate",
                       "/api/pick-tasks/*/confirm",
                       "/api/sales-orders/*/pack",
                       "/api/sales-orders/*/dispatch")
-                  .hasAnyRole("ADMIN", "OPERATOR");
+                  .hasAnyRole("ADMIN", "SUPERVISOR", "WAREHOUSE_OPERATOR");
+              auth.requestMatchers(
+                      HttpMethod.POST,
+                      "/api/mock-erp/**",
+                      "/api/sales-orders/*/allocate",
+                      "/api/locations/*/state",
+                      "/api/erp-messages/*/acknowledge")
+                  .hasAnyRole("ADMIN", "SUPERVISOR");
               auth.requestMatchers(
                       HttpMethod.POST,
                       "/api/products",
                       "/api/locations",
-                      "/api/locations/*/state",
-                      "/api/mock-erp/**",
                       "/api/demo/seed",
-                      "/api/erp-messages/*/acknowledge",
                       "/api/receive")
                   .hasRole("ADMIN");
               auth.requestMatchers(HttpMethod.GET, "/api/**").authenticated();

@@ -24,6 +24,9 @@ public class AccountBootstrap implements ApplicationRunner {
   }
 
   public void run(ApplicationArguments args) {
-    if (enabled) accounts.bootstrap(username.toLowerCase(java.util.Locale.ROOT), password);
+    if (enabled) {
+      accounts.bootstrap(username.toLowerCase(java.util.Locale.ROOT), password);
+      accounts.migrateLegacyRoles();
+    }
   }
 }

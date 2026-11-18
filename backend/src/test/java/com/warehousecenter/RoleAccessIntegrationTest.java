@@ -83,12 +83,12 @@ class RoleAccessIntegrationTest {
 
   @Test
   void adminCreatesUsersButOperatorCannotEscalate() throws Exception {
-    user("worker", "OPERATOR");
-    user("reviewer", "AUDITOR");
+    user("worker", "WAREHOUSE_OPERATOR");
+    user("reviewer", "WAREHOUSE_OPERATOR");
     assertEquals(200, getAs("worker", "worker-test-password", "/inventory"));
     postAs("worker", "worker-test-password", "/users", Map.of("username", "intruder"), 403);
     postAs("worker", "worker-test-password", "/products", Map.of("sku", "UNAUTHORIZED"), 403);
-    postAs("reviewer", "worker-test-password", "/putaway", Map.of(), 403);
+    postAs("reviewer", "worker-test-password", "/mock-erp/sales-orders", Map.of(), 403);
     assertEquals(
         0,
         sql.queryForObject(
@@ -101,7 +101,7 @@ class RoleAccessIntegrationTest {
 
   @Test
   void passwordHashesNeverLeaveUserApi() throws Exception {
-    long id = user("worker", "OPERATOR");
+    long id = user("worker", "WAREHOUSE_OPERATOR");
     String body =
         mvc.perform(get("/api/users").with(httpBasic("rbac-admin", "admin-test-password")))
             .andReturn()
@@ -117,27 +117,31 @@ class RoleAccessIntegrationTest {
 
   @Test
   void deactivationRevokesExistingCredentialsImmediately() throws Exception {
-    long id = user("worker", "OPERATOR");
+    long id = user("worker", "WAREHOUSE_OPERATOR");
     assertEquals(200, getAs("worker", "worker-test-password", "/inventory"));
     admin(
-        "/users/" + id, Map.of("displayName", "Worker", "role", "OPERATOR", "active", false), 200);
+        "/users/" + id,
+        Map.of("displayName", "Worker", "role", "WAREHOUSE_OPERATOR", "active", false),
+        200);
     assertEquals(401, getAs("worker", "worker-test-password", "/inventory"));
   }
 
   @Test
   void resetAndRoleChangeTakeEffectOnNextRequest() throws Exception {
-    long id = user("worker", "OPERATOR");
+    long id = user("worker", "SUPERVISOR");
     admin("/users/" + id + "/password", Map.of("password", "replacement-password"), 200);
     assertEquals(401, getAs("worker", "worker-test-password", "/inventory"));
     assertEquals(200, getAs("worker", "replacement-password", "/inventory"));
     admin(
-        "/users/" + id, Map.of("displayName", "Reviewer", "role", "AUDITOR", "active", true), 200);
+        "/users/" + id,
+        Map.of("displayName", "Reviewer", "role", "WAREHOUSE_OPERATOR", "active", true),
+        200);
     postAs("worker", "replacement-password", "/sales-orders/999/allocate", Map.of(), 403);
   }
 
   @Test
   void repeatedFailuresLockAccountUntilAdminUnlocks() throws Exception {
-    long id = user("worker", "OPERATOR");
+    long id = user("worker", "WAREHOUSE_OPERATOR");
     for (int i = 0; i < 5; i++) assertEquals(401, getAs("worker", "wrong", "/auth/me"));
     assertEquals(401, getAs("worker", "worker-test-password", "/auth/me"));
     admin("/users/" + id + "/unlock", Map.of(), 200);
@@ -152,7 +156,10 @@ class RoleAccessIntegrationTest {
   void administratorCannotRemoveOwnAccess() throws Exception {
     long id =
         sql.queryForObject("select id from app_users where username='rbac-admin'", Long.class);
-    admin("/users/" + id, Map.of("displayName", "Admin", "role", "OPERATOR", "active", true), 409);
+    admin(
+        "/users/" + id,
+        Map.of("displayName", "Admin", "role", "WAREHOUSE_OPERATOR", "active", true),
+        409);
     admin("/users/" + id, Map.of("displayName", "Admin", "role", "ADMIN", "active", false), 409);
     assertEquals(200, getAs("rbac-admin", "admin-test-password", "/users"));
   }
@@ -168,7 +175,7 @@ class RoleAccessIntegrationTest {
 
   @Test
   void operatorCanReceiveAndLedgerRecordsTheirIdentity() throws Exception {
-    user("worker", "OPERATOR");
+    user("worker", "WAREHOUSE_OPERATOR");
     admin("/demo/seed", Map.of(), 200);
     long product = sql.queryForObject("select id from products where barcode='WM101'", Long.class);
     long id =
@@ -202,5 +209,78 @@ class RoleAccessIntegrationTest {
         sql.queryForObject(
                 "select count(*) from stock_transactions where actor='worker'", Integer.class)
             > 0);
+  }
+
+  @Test
+  void supervisorManagesOrdersButCannotManageUsersOrMasterData() throws Exception {
+    user("supervisor", "SUPERVISOR");
+    user("worker", "WAREHOUSE_OPERATOR");
+    assertEquals(403, getAs("supervisor", "worker-test-password", "/users"));
+    assertEquals(200, getAs("supervisor", "worker-test-password", "/users/audit"));
+    postAs("supervisor", "worker-test-password", "/products", Map.of("sku", "BLOCKED"), 403);
+    admin("/demo/seed", Map.of(), 200);
+    long product = sql.queryForObject("select id from products where barcode='WM101'", Long.class);
+    long so =
+        postAs(
+                "supervisor",
+                "worker-test-password",
+                "/mock-erp/sales-orders",
+                Map.of(
+                    "reference",
+                    "SUP-" + UUID.randomUUID(),
+                    "partner",
+                    "Customer",
+                    "lines",
+                    List.of(Map.of("productId", product, "quantity", 99999))),
+                200)
+            .get("id")
+            .asLong();
+    postAs("worker", "worker-test-password", "/sales-orders/" + so + "/allocate", Map.of(), 403);
+    postAs(
+        "supervisor", "worker-test-password", "/sales-orders/" + so + "/allocate", Map.of(), 409);
+  }
+
+  @Test
+  void legacyOperatorRenamePreservesCredentialsAndIsIdempotent() throws Exception {
+    long id = user("worker", "WAREHOUSE_OPERATOR");
+    String hash =
+        sql.queryForObject("select password_hash from app_users where id=?", String.class, id);
+    sql.update("update app_users set role='OPERATOR' where id=?", id);
+    accounts.migrateLegacyRoles();
+    accounts.migrateLegacyRoles();
+    assertEquals(
+        "WAREHOUSE_OPERATOR",
+        sql.queryForObject("select role from app_users where id=?", String.class, id));
+    assertEquals(
+        hash,
+        sql.queryForObject("select password_hash from app_users where id=?", String.class, id));
+    assertEquals(
+        1,
+        sql.queryForObject(
+            "select count(*) from access_audit where event='ROLE_RENAMED'", Integer.class));
+    assertEquals(200, getAs("worker", "worker-test-password", "/auth/me"));
+  }
+
+  @Test
+  void retiredAuditorAccountsAreNotSilentlyPromoted() throws Exception {
+    long id = user("reviewer", "WAREHOUSE_OPERATOR");
+    sql.update("update app_users set role='AUDITOR' where id=?", id);
+    accounts.migrateLegacyRoles();
+    assertEquals(
+        "AUDITOR", sql.queryForObject("select role from app_users where id=?", String.class, id));
+    assertEquals(200, getAs("reviewer", "worker-test-password", "/inventory"));
+    postAs("reviewer", "worker-test-password", "/putaway", Map.of(), 403);
+    admin(
+        "/users",
+        Map.of(
+            "username",
+            "retired",
+            "displayName",
+            "Retired",
+            "password",
+            "worker-test-password",
+            "role",
+            "AUDITOR"),
+        400);
   }
 }

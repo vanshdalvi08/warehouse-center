@@ -75,6 +75,22 @@ public class AccountService {
   }
 
   @Transactional
+  public void migrateLegacyRoles() {
+    lock();
+    for (AppUser user : users.findAll()) {
+      if ("OPERATOR".equals(user.role)) {
+        user.role = "WAREHOUSE_OPERATOR";
+        event(
+            "ROLE_RENAMED",
+            "system",
+            user.username,
+            "OPERATOR -> WAREHOUSE_OPERATOR; allocation now requires Supervisor");
+      }
+    }
+    // Existing AUDITOR accounts remain read-only until an admin explicitly reassigns them.
+  }
+
+  @Transactional
   public AppUser create(Create r) {
     lock();
     String username = r.username().toLowerCase(Locale.ROOT);

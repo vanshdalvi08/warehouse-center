@@ -43,7 +43,7 @@ The Blueprint requests Render's free plan; it does not authorize a paid upgrade.
 
 The `cloud` profile binds to `0.0.0.0` and uses the hosting platform's `PORT`. It requires authentication for all application API routes except health and access-status checks. Missing access credentials prevent startup. Always use the HTTPS backend URL supplied by Render.
 
-Individual users, roles, active status and BCrypt password hashes are stored in PostgreSQL. `APP_USERNAME` / `APP_PASSWORD` bootstrap the initial administrator only when the user table is empty. Subsequent restarts do not reset accounts. Manage users through **Users & access**; see [AUTHENTICATION.md](AUTHENTICATION.md). Frontend credentials remain in memory and are cleared by sign-out or refresh. This provides server-enforced Admin / Operator / Auditor access, without claiming the full FDD role set or device registry.
+Individual users, roles, active status and BCrypt password hashes are stored in PostgreSQL. `APP_USERNAME` / `APP_PASSWORD` bootstrap the initial administrator only when the user table is empty. Subsequent restarts do not reset accounts. Manage users through **Users & access**; see [AUTHENTICATION.md](AUTHENTICATION.md). Frontend credentials remain in memory and are cleared by sign-out or refresh. This provides server-enforced Admin / Supervisor / Warehouse Operator access, without claiming the full FDD role set or device registry.
 
 ## 3. React frontend — Vercel
 
@@ -64,7 +64,7 @@ Once Vercel assigns the final URL, update `CORS_ALLOWED_ORIGINS` in Render to th
 
 1. Open the Vercel site; the hosted sign-in screen should appear.
 2. Confirm that unauthenticated `GET /api/inventory` and `POST /api/demo/seed` return 401 on the backend.
-3. Sign in with the initial administrator, then create individual operator/auditor accounts.
+3. Sign in with the initial administrator, then create individual Supervisor and Warehouse Operator accounts.
 4. Run the receipt → storage → order → reserve → pick → pack → dispatch workflow.
 5. Verify the final balance, audit history, and ERP confirmation queue.
 6. Restart the Render service and verify persistence in Supabase.
