@@ -1,0 +1,94 @@
+name: Package jury release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to package
+        required: true
+        default: v0.1.0-jury-mvp
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build release artifacts
+        run: |
+          cd backend
+          chmod +x mvnw
+          ./mvnw -B -ntp -DskipTests package
+          cd ../frontend
+          npm ci
+          npm run build
+      - name: Create clean source and full packages
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          git archive --format=zip --prefix=warehouse-center/ --output=artifacts/warehouse-center-source.zip HEAD
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, subprocess, zipfile
+          root=Path.cwd()
+          folder=root/'artifacts'
+          source=folder/'warehouse-center-source.zip'
+          bundle=folder/'warehouse-center-jury-mvp.zip'
+          commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          jar=root/'backend/target/warehouse-center-0.0.1-SNAPSHOT.jar'
+          with zipfile.ZipFile(jar) as built:
+              assert 'BOOT-INF/classes/com/warehousecenter/entity/AppUser.class' in built.namelist()
+              assert 'BOOT-INF/classes/com/warehousecenter/controller/UserController.class' in built.namelist()
+          with zipfile.ZipFile(source) as original, zipfile.ZipFile(bundle,'w',compression=zipfile.ZIP_DEFLATED) as packed:
+              for item in original.infolist():
+                  assert not any(p in {'.git','.runtime','node_modules'} for p in Path(item.filename).parts)
+                  assert not item.filename.endswith(('.log','.env','local-access.json'))
+                  packed.writestr(item,original.read(item.filename))
+              packed.write(jar,'warehouse-center/backend/target/'+jar.name)
+              for item in (root/'frontend/dist').rglob('*'):
+                  if item.is_file(): packed.write(item,'warehouse-center/frontend/dist/'+item.relative_to(root/'frontend/dist').as_posix())
+              packed.writestr('warehouse-center/RELEASE_README.md',f'''# Warehouse Center - Jury MVP package
+
+          Built from Git commit {commit}.
+
+          Includes source, an executable Spring Boot JAR in backend/target/, and compiled frontend in frontend/dist/.
+
+          Install Java 21, Node.js 20+ and PostgreSQL. Extract this ZIP and open PowerShell in warehouse-center.
+          Terminal 1: .\\Dev.ps1 backend
+          Terminal 2: .\\Dev.ps1 frontend
+          Open http://127.0.0.1:5173.
+
+          Initial administrator credentials are generated in .runtime/local-access.json on first setup.
+          Read README.md and AUTHENTICATION.md for roles and the jury demo. First setup may download Maven/npm dependencies.
+
+          Credentials, local database files, existing user accounts, business activity, node_modules and Git metadata are excluded.
+          The frontend uses relative /api and requires the Vite proxy or a configured web host; do not open dist/index.html directly.
+          Cloud setup is described in DEPLOYMENT.md. ERP remains simulated; this is a jury MVP.
+          ''')
+          with zipfile.ZipFile(bundle) as check:
+              assert check.testzip() is None
+          lines=[]
+          for path in (source,bundle):
+              with path.open('rb') as stream: digest=hashlib.file_digest(stream,'sha256').hexdigest()
+              lines.append(digest+'  '+path.name)
+          (folder/'SHA256SUMS.txt').write_text('\n'.join(lines)+'\n',encoding='ascii')
+          PY
+      - name: Upload packages and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$RELEASE_TAG" artifacts/warehouse-center-source.zip artifacts/warehouse-center-jury-mvp.zip artifacts/SHA256SUMS.txt --clobber
+          gh release edit "$RELEASE_TAG" --draft=false
