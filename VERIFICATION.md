@@ -61,3 +61,9 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Supervisor navigation and the guided workflow use existing master data without calling the admin-only seed endpoint. Operators see an allocation-waiting state instead of an allocation action.
 - Legacy Operator accounts are renamed with credentials preserved; legacy Auditor accounts remain read-only until explicitly reassigned. Neither automatic elevation nor user deletion is performed.
 - Backend suite: 25 tests passed, including supervisor limits, operator allocation denial, role migration idempotency and legacy read-only protection. Frontend suite: 18 tests passed, covering the three assignable roles, supervisor menus, allocation waiting and supervisor workflow preparation.
+
+## Sign-in role toggle ? 18 November 2026
+
+- Added an accessible native-radio three-way toggle for Admin, Supervisor and Warehouse Operator, styled consistently with the minimal login screen.
+- The selected role is verified against the account on the backend, and the frontend also rejects a mismatched role response. Selection cannot grant or change permissions.
+- Backend: 27 tests passed. Frontend: 21 tests passed, including all three choices, supervisor sign-in and mismatch rejection. Production frontend build passed. Browser visual verification is not claimed.

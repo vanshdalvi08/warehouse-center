@@ -61,4 +61,32 @@ class SecurityIntegrationTest {
                 .header("Access-Control-Request-Headers", "Authorization"))
         .andExpect(status().isForbidden());
   }
+
+  @Test
+  void selectedLoginRoleMustMatchTheDatabaseAssignment() throws Exception {
+    mvc.perform(
+            get("/api/auth/me")
+                .param("role", "ADMIN")
+                .with(httpBasic("test-operator", "test-password-for-suite")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.role").value("ADMIN"));
+    mvc.perform(
+            get("/api/auth/me")
+                .param("role", "SUPERVISOR")
+                .with(httpBasic("test-operator", "test-password-for-suite")))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.message")
+                .value(
+                    "This account is not assigned to the selected role. Choose the correct role and try again."));
+  }
+
+  @Test
+  void unsupportedLoginRoleIsRejected() throws Exception {
+    mvc.perform(
+            get("/api/auth/me")
+                .param("role", "UNKNOWN")
+                .with(httpBasic("test-operator", "test-password-for-suite")))
+        .andExpect(status().isBadRequest());
+  }
 }

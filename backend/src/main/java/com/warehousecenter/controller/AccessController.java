@@ -29,11 +29,22 @@ public class AccessController {
   }
 
   @GetMapping("/me")
-  public Map<String, Object> me(Principal principal) {
+  public Map<String, Object> me(Principal principal, @RequestParam(required = false) String role) {
     if (principal == null)
       return Map.of(
           "username", "local-demo-operator", "displayName", "Local development", "role", "ADMIN");
     var user = users.findByUsername(principal.getName()).orElseThrow();
+    if (role != null && !Set.of("ADMIN", "SUPERVISOR", "WAREHOUSE_OPERATOR").contains(role)) {
+      throw new org.springframework.web.server.ResponseStatusException(
+          org.springframework.http.HttpStatus.BAD_REQUEST,
+          "Choose Admin, Supervisor or Warehouse Operator");
+    }
+    if (role != null && !role.equals(user.role)) {
+      accounts.denied(user.username, "Sign-in role mismatch: selected " + role);
+      throw new org.springframework.web.server.ResponseStatusException(
+          org.springframework.http.HttpStatus.FORBIDDEN,
+          "This account is not assigned to the selected role. Choose the correct role and try again.");
+    }
     accounts.signedIn(user.username);
     return Map.of(
         "id",

@@ -6,7 +6,7 @@ The Markdown's M01 MVP decision calls for real role-based permissions. The selec
 
 ## Sign in locally
 
-Start the project with `Dev.ps1 backend` and `Dev.ps1 frontend`. Open http://127.0.0.1:5173.
+Start the project with `Dev.ps1 backend` and `Dev.ps1 frontend`. Open http://127.0.0.1:5173. Select **Admin**, **Supervisor** or **Warehouse Operator** using the sign-in toggle, then enter that account's credentials. The selected role must match the account's database role; it cannot grant extra permissions.
 
 On first local start, the helper generates a unique administrator password and saves the login details in `.runtime/local-access.json`. Open that file to obtain the username and password. It is ignored by Git and is not uploaded to GitHub. Treat it as a local secret. The default username is `admin`.
 

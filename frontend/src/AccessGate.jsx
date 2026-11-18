@@ -7,6 +7,7 @@ export function AccessGate({ children }) {
   const [state, setState] = useState("checking"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
+    [selectedRole, setSelectedRole] = useState("ADMIN"),
     [user, setUser] = useState(null);
   async function check() {
     setError("");
@@ -41,13 +42,21 @@ export function AccessGate({ children }) {
         btoa(Array.from(credentials, (c) => String.fromCharCode(c)).join("")),
     );
     try {
-      const user = await api("/auth/me");
+      const user = await api(
+        `/auth/me?role=${encodeURIComponent(selectedRole)}`,
+      );
+      if (user.role !== selectedRole) {
+        throw new Error(
+          "This account is not assigned to the selected role. Choose the correct role and try again.",
+        );
+      }
       setUser(user);
       setState("authenticated");
-    } catch {
+    } catch (error) {
       setAuthorization("");
       setError(
-        "Sign-in failed. Check your credentials and the server connection.",
+        error.message ||
+          "Sign-in failed. Check your credentials and the server connection.",
       );
       setState("login");
     } finally {
@@ -108,17 +117,50 @@ export function AccessGate({ children }) {
         )}
         {state === "login" ? (
           <form onSubmit={login}>
+            <fieldset className="access-role-toggle" disabled={busy}>
+              <legend>Sign in as</legend>
+              <div className="access-role-options">
+                {["ADMIN", "SUPERVISOR", "WAREHOUSE_OPERATOR"].map((role) => (
+                  <label className="access-role-option" key={role}>
+                    <input
+                      type="radio"
+                      name="role"
+                      value={role}
+                      checked={selectedRole === role}
+                      onChange={() => {
+                        setSelectedRole(role);
+                        setError("");
+                      }}
+                    />
+                    <span>{roleLabel(role)}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="access-role-description">
+                {
+                  {
+                    ADMIN: "Manage users, master data and settings.",
+                    SUPERVISOR:
+                      "Manage orders, allocation and warehouse activity.",
+                    WAREHOUSE_OPERATOR:
+                      "Receive, store, pick, pack and dispatch goods.",
+                  }[selectedRole]
+                }
+              </p>
+            </fieldset>
             <Field
               name="username"
               label="Username"
               autoComplete="username"
               maxLength={100}
+              disabled={busy}
             />
             <Field
               name="password"
               label="Password"
               type="password"
               autoComplete="current-password"
+              disabled={busy}
             />
             <button disabled={busy}>
               {busy ? "Signing in..." : "Sign in"}

@@ -30,7 +30,9 @@ describe("hosted workspace access", () => {
   it("requires sign-in, then clears credentials on sign-out without storing them", async () => {
     api.mockImplementation((path) =>
       Promise.resolve(
-        path === "/auth/status" ? { enabled: true } : { username: "operator" },
+        path === "/auth/status"
+          ? { enabled: true }
+          : { username: "operator", role: "WAREHOUSE_OPERATOR" },
       ),
     );
     const user = userEvent.setup();
@@ -41,6 +43,7 @@ describe("hosted workspace access", () => {
     );
     await screen.findByRole("heading", { name: "Workspace sign-in" });
     expect(screen.queryByText("Operations workspace")).toBeNull();
+    await user.click(screen.getByRole("radio", { name: "Warehouse Operator" }));
     await user.type(screen.getByLabelText("Username"), "operator");
     await user.type(screen.getByLabelText("Password"), "sample-password");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
@@ -85,5 +88,67 @@ describe("hosted workspace access", () => {
       await screen.findByRole("button", { name: "Retry connection" }),
     ).toBeTruthy();
     expect(screen.queryByText("Operations workspace")).toBeNull();
+  });
+
+  it("shows a three-way role toggle with Admin selected initially", async () => {
+    api.mockResolvedValue({ enabled: true });
+    render(
+      <AccessGate>
+        <div>Operations workspace</div>
+      </AccessGate>,
+    );
+    await screen.findByRole("heading", { name: "Workspace sign-in" });
+    expect(screen.getAllByRole("radio").map((r) => r.value)).toEqual([
+      "ADMIN",
+      "SUPERVISOR",
+      "WAREHOUSE_OPERATOR",
+    ]);
+    expect(screen.getByRole("radio", { name: "Admin" }).checked).toBe(true);
+  });
+  it("signs a supervisor into the selected workspace role", async () => {
+    api.mockImplementation((path) =>
+      Promise.resolve(
+        path === "/auth/status"
+          ? { enabled: true }
+          : { username: "supervisor01", role: "SUPERVISOR" },
+      ),
+    );
+    const user = userEvent.setup();
+    render(
+      <AccessGate>
+        <div>Operations workspace</div>
+      </AccessGate>,
+    );
+    await screen.findByRole("heading", { name: "Workspace sign-in" });
+    await user.click(screen.getByRole("radio", { name: "Supervisor" }));
+    await user.type(screen.getByLabelText("Username"), "supervisor01");
+    await user.type(screen.getByLabelText("Password"), "sample-password");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(await screen.findByText("Operations workspace")).toBeTruthy();
+    expect(api).toHaveBeenCalledWith("/auth/me?role=SUPERVISOR");
+  });
+  it("does not grant Admin access when another role's credentials are supplied", async () => {
+    api.mockImplementation((path) =>
+      Promise.resolve(
+        path === "/auth/status"
+          ? { enabled: true }
+          : { username: "worker", role: "WAREHOUSE_OPERATOR" },
+      ),
+    );
+    const user = userEvent.setup();
+    render(
+      <AccessGate>
+        <div>Operations workspace</div>
+      </AccessGate>,
+    );
+    await screen.findByRole("heading", { name: "Workspace sign-in" });
+    await user.type(screen.getByLabelText("Username"), "worker");
+    await user.type(screen.getByLabelText("Password"), "sample-password");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "not assigned to the selected role",
+    );
+    expect(screen.queryByText("Operations workspace")).toBeNull();
+    expect(setAuthorization).toHaveBeenLastCalledWith("");
   });
 });

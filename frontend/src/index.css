@@ -1413,3 +1413,96 @@ footer {
     padding: 26px;
   }
 }
+
+/* Native radio inputs styled as a compact three-way sign-in toggle. */
+.access-panel {
+  max-width: 460px;
+}
+.access-role-toggle {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.access-role-toggle legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #626e7d;
+}
+.access-role-options {
+  display: grid;
+  grid-template-columns: 0.85fr 1fr 1.55fr;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #dfe3e9;
+  border-radius: 5px;
+  background: #f5f6f8;
+}
+.access-role-option {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  min-width: 0;
+}
+.access-role-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  opacity: 0;
+  padding: 0;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+}
+.access-role-option span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 35px;
+  padding: 7px 5px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: #8a929d;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+.access-role-option input:checked + span {
+  background: #fff;
+  border-color: #e0e4e9;
+  color: #313c4a;
+  box-shadow: 0 1px 2px #1b243309;
+  font-weight: 500;
+}
+.access-role-option input:focus-visible + span {
+  outline: 2px solid #5681bd;
+  outline-offset: 1px;
+}
+.access-role-option input:disabled + span {
+  opacity: 0.5;
+  cursor: default;
+}
+.access-role-description {
+  font-size: 10px;
+  line-height: 1.6;
+  color: #929ba8;
+  margin-top: 10px;
+  min-height: 16px;
+}
+@media (max-width: 380px) {
+  .access-panel {
+    padding: 23px 18px;
+  }
+  .access-role-option span {
+    font-size: 10px;
+    white-space: normal;
+    text-align: center;
+  }
+  .access-role-options {
+    grid-template-columns: 0.8fr 1fr 1.5fr;
+  }
+}
