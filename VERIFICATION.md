@@ -73,3 +73,9 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Added a decorative vector warehouse illustration with shelving, cartons, a loaded forklift and a packing station. The illustration is hidden from assistive technology, ignores pointer events and sits behind the opaque sign-in card.
 - Kept a quiet center, muted colors and lower mobile opacity. No external imagery, animation, or business logic changes were introduced.
 - The SVG was rendered to a local PNG and visually inspected. Frontend interaction tests (21) and the production build passed. This does not claim a complete browser-layout or mobile screenshot check.
+
+## Split-screen illustrated sign-in - 18 November 2026
+
+- Moved sign-in to the right and replaced the previous background with three original blue-and-white SVG scenes for receiving, storage and dispatch on the left. Scenes crossfade with subtle internal motion, manual navigation and pause/play controls.
+- Automatic changes pause during interaction, when the page is hidden, and for reduced-motion preferences. Narrow screens retain a compact brand header and prioritize the form.
+- All 24 frontend tests and the production build passed, including slideshow navigation, pause/resume, hidden-page and reduced-motion checks. The local Vite module responds successfully. Original artwork was rendered and visually inspected as a PNG; full browser-layout verification was unavailable.

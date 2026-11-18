@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Boxes, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { api, setAuthorization, Field } from "./ui";
 import { AccessContext, roleLabel } from "./AccessContext";
-import { WarehouseBackdrop } from "./WarehouseBackdrop";
+import { AccessStory } from "./AccessStory";
 
 export function AccessGate({ children }) {
   const [state, setState] = useState("checking"),
@@ -101,81 +101,82 @@ export function AccessGate({ children }) {
       </AccessContext.Provider>
     );
   return (
-    <div className="access-screen">
-      <WarehouseBackdrop />
-      <section className="access-panel">
-        <div className="access-brand">
-          <Boxes size={23} />
-          <strong>Warehouse Center</strong>
-        </div>
-        <h1>
-          {state === "login" ? "Workspace sign-in" : "Connecting to workspace"}
-        </h1>
-        <p>Warehouse operations and inventory management.</p>
-        {error && (
-          <div role="alert" className="alert error">
-            {error}
-          </div>
-        )}
-        {state === "login" ? (
-          <form onSubmit={login}>
-            <fieldset className="access-role-toggle" disabled={busy}>
-              <legend>Sign in as</legend>
-              <div className="access-role-options">
-                {["ADMIN", "SUPERVISOR", "WAREHOUSE_OPERATOR"].map((role) => (
-                  <label className="access-role-option" key={role}>
-                    <input
-                      type="radio"
-                      name="role"
-                      value={role}
-                      checked={selectedRole === role}
-                      onChange={() => {
-                        setSelectedRole(role);
-                        setError("");
-                      }}
-                    />
-                    <span>{roleLabel(role)}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="access-role-description">
-                {
+    <div className="access-screen access-split">
+      <AccessStory />
+      <div className="access-login-region">
+        <section className="access-panel">
+          <div className="access-login-eyebrow">YOUR WORKSPACE</div>
+          <h1>
+            {state === "login"
+              ? "Workspace sign-in"
+              : "Connecting to workspace"}
+          </h1>
+          <p>Use your account to continue.</p>
+          {error && (
+            <div role="alert" className="alert error">
+              {error}
+            </div>
+          )}
+          {state === "login" ? (
+            <form onSubmit={login}>
+              <fieldset className="access-role-toggle" disabled={busy}>
+                <legend>Sign in as</legend>
+                <div className="access-role-options">
+                  {["ADMIN", "SUPERVISOR", "WAREHOUSE_OPERATOR"].map((role) => (
+                    <label className="access-role-option" key={role}>
+                      <input
+                        type="radio"
+                        name="role"
+                        value={role}
+                        checked={selectedRole === role}
+                        onChange={() => {
+                          setSelectedRole(role);
+                          setError("");
+                        }}
+                      />
+                      <span>{roleLabel(role)}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="access-role-description">
                   {
-                    ADMIN: "Manage users, master data and settings.",
-                    SUPERVISOR:
-                      "Manage orders, allocation and warehouse activity.",
-                    WAREHOUSE_OPERATOR:
-                      "Receive, store, pick, pack and dispatch goods.",
-                  }[selectedRole]
-                }
-              </p>
-            </fieldset>
-            <Field
-              name="username"
-              label="Username"
-              autoComplete="username"
-              maxLength={100}
-              disabled={busy}
-            />
-            <Field
-              name="password"
-              label="Password"
-              type="password"
-              autoComplete="current-password"
-              disabled={busy}
-            />
-            <button disabled={busy}>
-              {busy ? "Signing in..." : "Sign in"}
-              <ArrowRight size={14} />
-            </button>
-          </form>
-        ) : state === "error" ? (
-          <button onClick={check}>Retry connection</button>
-        ) : (
-          <p role="status">Checking workspace access...</p>
-        )}
-        <small>Access is restricted to authorised operators.</small>
-      </section>
+                    {
+                      ADMIN: "Manage users, master data and settings.",
+                      SUPERVISOR:
+                        "Manage orders, allocation and warehouse activity.",
+                      WAREHOUSE_OPERATOR:
+                        "Receive, store, pick, pack and dispatch goods.",
+                    }[selectedRole]
+                  }
+                </p>
+              </fieldset>
+              <Field
+                name="username"
+                label="Username"
+                autoComplete="username"
+                maxLength={100}
+                disabled={busy}
+              />
+              <Field
+                name="password"
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                disabled={busy}
+              />
+              <button disabled={busy}>
+                {busy ? "Signing in..." : "Sign in"}
+                <ArrowRight size={14} />
+              </button>
+            </form>
+          ) : state === "error" ? (
+            <button onClick={check}>Retry connection</button>
+          ) : (
+            <p role="status">Checking workspace access...</p>
+          )}
+          <small>Access is restricted to authorised operators.</small>
+        </section>
+      </div>
     </div>
   );
 }
