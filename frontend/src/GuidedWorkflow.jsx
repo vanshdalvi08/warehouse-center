@@ -495,7 +495,8 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                     <Hint>
                       Open the customer page in a separate tab, choose{" "}
                       {product?.name} and request 10 units. Submit the order,
-                      return here and refresh incoming orders.
+                      return here and refresh incoming orders. For the MVP demo,
+                      you can also create a sample request in the ERP simulator.
                     </Hint>
                     <div className="row-actions">
                       <a href="/order" target="_blank" rel="noreferrer">
@@ -503,6 +504,12 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                       </a>
                       <button type="button" onClick={reload}>
                         Refresh incoming orders
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("ERP simulator")}
+                      >
+                        Create an ERP demo request
                       </button>
                     </div>
                     <Form
@@ -513,7 +520,6 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                         );
                         if (
                           !selected ||
-                          selected.source !== "CUSTOMER" ||
                           selected.status !== "OPEN" ||
                           selected.lines.length !== 1 ||
                           selected.lines[0].product.id !== guide.productId
@@ -540,14 +546,13 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                         {sales
                           .filter(
                             (o) =>
-                              o.source === "CUSTOMER" &&
                               o.status === "OPEN" &&
                               o.lines.length === 1 &&
                               o.lines[0].product.id === guide.productId,
                           )
                           .map((o) => (
                             <option key={o.id} value={o.id}>
-                              {o.reference} ? {o.partner} ?{" "}
+                              {o.reference} · {o.partner} ·{" "}
                               {o.lines[0].quantity} units
                             </option>
                           ))}

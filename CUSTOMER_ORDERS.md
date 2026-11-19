@@ -6,6 +6,8 @@ Staff page: http://127.0.0.1:5173. Sign in and select **Orders** in the main sid
 
 ## Jury demonstration
 
+For a quick MVP rehearsal, open Master data & integration → ERP simulator → Demo customer request → Create demo customer order. This imports an OPEN order for Demo Customer, 10 × Wireless Mouse, with source ERP. It does not reserve or deduct stock. Use Orders to review and allocate it. The guided workflow also accepts this imported request. The separate external customer page remains available.
+
 1. Receive stock and put it away in storage using Workflow or Inbound/Inventory.
 2. Open the customer page in a second tab, using the link in Orders. Select Wireless Mouse, request 10 units, enter a customer name and submit.
 3. Keep the WEB reference in the confirmation. It confirms that the request was received, not that stock was reserved or shipped.

@@ -24,6 +24,7 @@ import { GuidedWorkflow } from "./GuidedWorkflow";
 import { Overview } from "./Overview";
 import { CustomerOrders } from "./CustomerOrders";
 import { CustomerPortal } from "./CustomerPortal";
+import { DemoCustomerOrder } from "./DemoCustomerOrder";
 import { AccessGate } from "./AccessGate";
 import { useAccess } from "./AccessContext";
 import { UserManagement, AccessHistory } from "./UserManagement";
@@ -635,6 +636,11 @@ export function App() {
                     </button>
                   )}
                 </div>
+                <DemoCustomerOrder
+                  products={products}
+                  mutate={mutate}
+                  navigate={setTab}
+                />
                 <div className="two-col">
                   <OrderEditor
                     kind="purchase"
