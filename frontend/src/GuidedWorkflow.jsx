@@ -385,11 +385,13 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                         reject it without changing stock.
                       </Hint>
                       <Field
+                        scan
                         label="Product barcode — scan or type here"
                         name="barcode"
                         placeholder={product?.barcode}
                       />
                       <Field
+                        scan
                         label="Where did the delivery arrive?"
                         name="locationCode"
                         defaultValue={guide.receivingCode || "RECV-01"}
@@ -456,11 +458,13 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                       below. Total warehouse stock will stay the same.
                     </Hint>
                     <Field
+                      scan
                       label="Product barcode"
                       name="barcode"
                       placeholder={product?.barcode}
                     />
                     <Field
+                      scan
                       label="Destination shelf"
                       name="destinationCode"
                       defaultValue="A-01"
@@ -676,16 +680,19 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                               }}
                             >
                               <Field
+                                scan
                                 label="Product barcode"
                                 name="barcode"
                                 placeholder={t.line.product.barcode}
                               />
                               <Field
+                                scan
                                 label="Shelf barcode — scan or type here"
                                 name="sourceCode"
                                 placeholder={t.inventory.location.code}
                               />
                               <Field
+                                scan
                                 label="Where will you pack the goods?"
                                 name="packingCode"
                                 defaultValue="PACK-01"
@@ -753,6 +760,7 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                           </Hint>
                           <div className="two-col">
                             <Field
+                              scan
                               label="Product barcode"
                               name={"barcode" + l.id}
                               placeholder={l.product.barcode}
@@ -766,6 +774,7 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                         </div>
                       ))}
                       <Field
+                        scan
                         label="Barcode for this shipping box"
                         name="cartonBarcode"
                         defaultValue={guide.cartonReference}
@@ -806,6 +815,7 @@ export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
                         <strong>{so?.cartonBarcode}</strong>.
                       </Hint>
                       <Field
+                        scan
                         label="Shipping box barcode"
                         name="cartonBarcode"
                         placeholder={so?.cartonBarcode}

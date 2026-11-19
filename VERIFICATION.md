@@ -86,6 +86,12 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Kept the right-side form and carousel crossfades, manual controls, pause and reduced-motion behaviour. Removed obsolete SVG-specific movement styles and preserved each image's 3:2 aspect ratio without cropping.
 - All 24 frontend tests and the production build passed. All three local image URLs returned HTTP 200. Full browser-layout verification is not claimed. Generation prompts and asset details are saved alongside the images in ARTWORK.md.
 
+## Camera barcode scanning - 19 November 2026
+
+- Added camera buttons to 22 barcode/location fields across receiving, transfers, guided operations, picking, packing, dispatch and product barcode registration. Shared scanner uses local lazy-loaded ZXing decoding, a native modal dialog and video-only camera permission, with manual entry retained.
+- Detection fills the selected field without submitting. Location dropdowns reject codes outside the current options. Camera controls and streams are stopped on capture, close, unmount, errors and late permission resolution. Permission denial, missing/busy cameras and unsupported/insecure contexts have actionable messages.
+- All 37 frontend tests pass: existing flows, six mocked camera/field lifecycle checks, and actual synthetic Code 128 decoding for WM101, A-01 and a carton identifier. Production build passed; the local scanner module responds successfully. No backend behaviour changed. Physical camera capture and a complete browser visual pass remain unverified.
+
 ## External customer requests and staff Orders - 19 November 2026
 
 - Added an ERP simulator shortcut for a 10-unit demo customer request and allowed imported requests in the guided customer-order step. A single requested sample order was created locally in OPEN status; no allocation, stock changes or dispatch were performed. Frontend checks cover the shortcut payload and navigation.

@@ -31,6 +31,8 @@ Cloud deployment configuration and protected sign-in are described in [DEPLOYMEN
 
 ## Authentication
 
+Camera scanning is available beside the operational barcode/location fields. See [Camera barcode scanning](CAMERA_SCANNING.md) for permissions, supported labels and testing limits. Manual entry remains available.
+
 Sign-in, role-based access and administrator user management are implemented. Read [AUTHENTICATION.md](AUTHENTICATION.md) for the Admin / Supervisor / Warehouse Operator permissions and local login instructions.
 
 ## Run on this Windows laptop
@@ -179,4 +181,4 @@ Implemented: persistent masters and stock, order-backed receipt, storage movemen
 
 Simulated: enterprise ERP and device identity. Individual operator accounts are stored in PostgreSQL. No SAP/Oracle integration or background external delivery is claimed.
 
-Deferred: full FDD role specialization and device registration, QA holds/releases, license plates, lots/serials/expiry/FEFO, partial allocations/backorders/partial shipments, cancellation and reservation release, returns, cycle counts, offline/camera scanning, advanced reporting, separate loading dock workflows, production migrations and deployment hardening. Physical scanner/printer hardware has not been tested. The FDD accuracy targets are not claimed as achieved.
+Deferred: full FDD role specialization and device registration, QA holds/releases, license plates, lots/serials/expiry/FEFO, partial allocations/backorders/partial shipments, cancellation and reservation release, returns, cycle counts, offline operation, advanced reporting, separate loading dock workflows, production migrations and deployment hardening. Physical camera/scanner/printer hardware has not been tested. The FDD accuracy targets are not claimed as achieved.

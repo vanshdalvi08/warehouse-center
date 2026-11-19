@@ -401,6 +401,7 @@ export function App() {
                         placeholder="Wireless Mouse"
                       />
                       <Field
+                        scan
                         label="Item barcode"
                         name="barcode"
                         placeholder="WM101"
@@ -545,16 +546,19 @@ export function App() {
                       label="Confirm movement"
                     >
                       <Field
+                        scan
                         label="Product barcode"
                         name="barcode"
                         placeholder="Scan item"
                       />
                       <Field
+                        scan
                         label="Source location scan"
                         name="sourceCode"
                         placeholder="RECV-01"
                       />
                       <Field
+                        scan
                         label="Destination location scan"
                         name="destinationCode"
                         placeholder="A-01"

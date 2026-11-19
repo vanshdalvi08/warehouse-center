@@ -1,5 +1,6 @@
-import React from "react";
-import { ArrowRight } from "lucide-react";
+import React, { useId, useRef, useState } from "react";
+import { ArrowRight, Camera } from "lucide-react";
+import { BarcodeCamera } from "./BarcodeCamera";
 const API = import.meta.env.VITE_API_BASE || "/api";
 let authorization = "";
 export function setAuthorization(value) {
@@ -87,8 +88,90 @@ export function Field({
   onChange,
   type = "text",
   children,
+  scan = false,
   ...rest
 }) {
+  const id = useId();
+  const control = useRef(null),
+    scanButton = useRef(null);
+  const [scanning, setScanning] = useState(false),
+    [scanMessage, setScanMessage] = useState(""),
+    [scanError, setScanError] = useState(false);
+  if (scan) {
+    const inputProps = { id, ref: control, name, value, onChange, ...rest };
+    function close() {
+      setScanning(false);
+      scanButton.current?.focus();
+    }
+    function detected(text) {
+      const element = control.current;
+      if (
+        children &&
+        !Array.from(element.options).some(
+          (o) => o.value === text && !o.disabled,
+        )
+      ) {
+        setScanError(true);
+        setScanMessage(
+          `Scanned ${text}, but it is not an available location. Choose a listed location or scan its label.`,
+        );
+        close();
+        return;
+      }
+      const prototype = children
+        ? HTMLSelectElement.prototype
+        : HTMLInputElement.prototype;
+      Object.getOwnPropertyDescriptor(prototype, "value").set.call(
+        element,
+        text,
+      );
+      element.dispatchEvent(
+        new Event(children ? "change" : "input", { bubbles: true }),
+      );
+      setScanError(false);
+      setScanMessage(
+        `Scanned ${text}. Review the value, then confirm the operation.`,
+      );
+      setScanning(false);
+      element.focus();
+    }
+    return (
+      <div className="scan-field">
+        <label htmlFor={id}>
+          <span>{label}</span>
+        </label>
+        <div className="scan-field-control">
+          {children ? (
+            <select {...inputProps}>{children}</select>
+          ) : (
+            <input {...inputProps} type={type} required />
+          )}
+          <button
+            type="button"
+            className="camera-scan-button"
+            ref={scanButton}
+            aria-label={`Scan ${label} with camera`}
+            disabled={rest.disabled}
+            onClick={() => setScanning(true)}
+          >
+            <Camera size={16} />
+            <span>Scan</span>
+          </button>
+        </div>
+        {scanMessage && (
+          <p
+            className="scan-field-message"
+            role={scanError ? "alert" : "status"}
+          >
+            {scanMessage}
+          </p>
+        )}
+        {scanning && (
+          <BarcodeCamera label={label} onDetected={detected} onClose={close} />
+        )}
+      </div>
+    );
+  }
   return (
     <label>
       <span>{label}</span>

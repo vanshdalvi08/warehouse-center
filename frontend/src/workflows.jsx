@@ -163,11 +163,13 @@ export function Inbound({ orders, mutate, selectedId = "", readOnly = false }) {
             label="Confirm receipt"
           >
             <Field
+              scan
               label="Product barcode scan"
               name="barcode"
               placeholder="WM101"
             />
             <Field
+              scan
               label="Receiving location scan"
               name="locationCode"
               defaultValue="RECV-01"
@@ -320,16 +322,19 @@ export function Outbound({
                     label="Confirm pick"
                   >
                     <Field
+                      scan
                       name="barcode"
                       label="Product barcode scan"
                       placeholder="Scan item"
                     />
                     <Field
+                      scan
                       name="sourceCode"
                       label="Source location scan"
                       placeholder="Scan source bin"
                     />
                     <Field
+                      scan
                       name="packingCode"
                       label="Packing / staging location"
                       defaultValue="PACK-01"
@@ -369,6 +374,7 @@ export function Outbound({
                 {order.lines.map((l) => (
                   <div key={l.id} className="two-col">
                     <Field
+                      scan
                       label={`${l.product.sku} · product barcode scan`}
                       name={"barcode" + l.id}
                     />
@@ -380,6 +386,7 @@ export function Outbound({
                   </div>
                 ))}
                 <Field
+                  scan
                   label="Unique shipping carton barcode"
                   name="cartonBarcode"
                   placeholder="CARTON-1001"
@@ -413,6 +420,7 @@ export function Outbound({
                   label="Confirm dispatch"
                 >
                   <Field
+                    scan
                     label="Shipping carton barcode scan"
                     name="cartonBarcode"
                     placeholder="Scan carton"
