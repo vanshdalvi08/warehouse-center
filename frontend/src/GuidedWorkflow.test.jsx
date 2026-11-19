@@ -154,17 +154,19 @@ describe("guided warehouse workflow", () => {
           next.purchase = [result];
           next.inventory.push(row(locations[0], 50));
         }
-        if (path === "/putaway")
+        if (path === "/putaway") {
           next.inventory = [row(locations[1], 90), row(locations[0], 0)];
-        if (path === "/mock-erp/sales-orders") {
-          result = {
-            id: 22,
-            reference: body.reference,
-            partner: body.partner,
-            status: "OPEN",
-            lines: [{ id: 2, product, quantity: body.lines[0].quantity }],
-          };
-          next.sales = [result];
+          // An independently submitted customer request arrives in the warehouse queue.
+          next.sales = [
+            {
+              id: 22,
+              reference: "WEB-EXTERNAL",
+              partner: "Outside customer",
+              source: "CUSTOMER",
+              status: "OPEN",
+              lines: [{ id: 2, product, quantity: 10 }],
+            },
+          ];
         }
         if (path.endsWith("/allocate")) {
           result = { ...next.sales[0], status: "ALLOCATED" };
@@ -218,8 +220,12 @@ describe("guided warehouse workflow", () => {
     await user.click(
       screen.getByRole("button", { name: "Confirm goods stored" }),
     );
+    await user.selectOptions(
+      screen.getByLabelText("Incoming customer order"),
+      "22",
+    );
     await user.click(
-      screen.getByRole("button", { name: "Save customer order" }),
+      screen.getByRole("button", { name: "Use customer order" }),
     );
     await user.click(screen.getByRole("button", { name: "Reserve 10 units" }));
     await waitFor(() =>
@@ -276,7 +282,10 @@ describe("guided warehouse workflow", () => {
       { cartonBarcode: carton, scans: [{ barcode: "WM101", quantity: 10 }] },
       expect.any(String),
     );
-    expect(calls).toHaveBeenCalledTimes(9);
+    expect(calls).toHaveBeenCalledTimes(8);
+    expect(
+      calls.mock.calls.some(([path]) => path === "/mock-erp/sales-orders"),
+    ).toBe(false);
     expect(onError).not.toHaveBeenCalled();
     expect(
       JSON.parse(localStorage.getItem("warehouse-center-guided-v1")).step,

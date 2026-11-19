@@ -6,12 +6,14 @@ A local, PostgreSQL-backed warehouse demo built with React 19, Vite, Tailwind CS
 
 ## Start with the guided screen
 
+Customer requests now originate on a separate **/order** page. Staff review them under **Orders** in the sidebar. See [Customer orders](CUSTOMER_ORDERS.md) for the current two-tab jury flow and availability rules. At the guided customer-order step, select an incoming outside request instead of creating one inside the warehouse.
+
 The app opens on **Workflow**. Click **Start workflow** and complete the single action shown on screen. The guide takes you through:
 
 1. Record the delivery you expect.
 2. Receive the actual goods.
 3. Put them on a storage shelf.
-4. Record a customer's order.
+4. Select a request submitted from the separate customer page.
 5. Reserve the customer's units.
 6. Collect them from the shelf.
 7. Check and pack the box.

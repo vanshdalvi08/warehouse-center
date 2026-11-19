@@ -65,6 +65,8 @@ public class SecurityConfig {
             auth -> {
               auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
               auth.requestMatchers(HttpMethod.GET, "/api/health", "/api/auth/status").permitAll();
+              auth.requestMatchers(HttpMethod.GET, "/api/customer/catalog").permitAll();
+              auth.requestMatchers(HttpMethod.POST, "/api/customer/orders").permitAll();
               if (!enabled) {
                 auth.anyRequest().permitAll();
                 return;

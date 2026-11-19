@@ -86,6 +86,12 @@ No production deployment, authenticated roles, live ERP connection, or numerical
 - Kept the right-side form and carousel crossfades, manual controls, pause and reduced-motion behaviour. Removed obsolete SVG-specific movement styles and preserved each image's 3:2 aspect ratio without cropping.
 - All 24 frontend tests and the production build passed. All three local image URLs returned HTTP 200. Full browser-layout verification is not claimed. Generation prompts and asset details are saved alongside the images in ARTWORK.md.
 
+## External customer requests and staff Orders - 19 November 2026
+
+- Added a separate public customer order-request page, staff Orders navigation, product availability checks, line-level shortages and allocation/fulfilment actions. Guided Workflow now selects outside customer requests rather than creating sales orders internally.
+- Availability excludes reserved units and inactive/non-storage locations. Submission checks stock without reserving; the existing transactional allocation rechecks and reserves. Customer request retries return the same confirmation without duplicating orders. Legacy orders default to ERP source.
+- All 29 backend tests passed on the dedicated test database; the workflow suite also passed after extending the new test through dispatch and blocked-bin checks. All 27 frontend tests and the production build passed. Public catalogue and customer page respond locally, authenticated staff orders work and anonymous staff-order access returns 401. Full browser screenshot verification is not claimed.
+
 ## Viewport-sized sign-in layout - 18 November 2026
 
 - Constrained the desktop split screen to the dynamic viewport height, using shrinkable grid rows to reserve room for branding, headings, captions and slideshow controls. Images now contain within the remaining space instead of determining the page height from their width.

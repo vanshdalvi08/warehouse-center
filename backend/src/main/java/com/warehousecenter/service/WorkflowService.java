@@ -161,6 +161,41 @@ public class WorkflowService {
     return orders.save(o);
   }
 
+  public List<com.warehousecenter.dto.CustomerRequests.CatalogItem> customerCatalog() {
+    var stock = inventory.findAll();
+    return products.findAll().stream().map(p ->
+        new com.warehousecenter.dto.CustomerRequests.CatalogItem(p.id, p.sku, p.name,
+            stock.stream().filter(i -> i.product.id.equals(p.id) && i.location.active && "STORAGE".equals(i.location.type))
+                .mapToInt(Inventory::getAvailable).sum())).toList();
+  }
+
+  public com.warehousecenter.dto.CustomerRequests.Confirmation customerOrder(
+      com.warehousecenter.dto.CustomerRequests.Order r) {
+    lock();
+    String reference = "WEB-" + r.requestId();
+    String customer = r.customerName().trim();
+    var existing = orders.findByReference(reference);
+    if (existing.isPresent()) {
+      var old = existing.get();
+      check("CUSTOMER".equals(old.source) && customer.equals(old.partner)
+          && old.lines.size() == r.lines().size()
+          && new HashSet<>(r.lines()).size() == r.lines().size()
+          && old.lines.stream().allMatch(l -> r.lines().stream().anyMatch(x -> l.product.id.equals(x.productId()) && l.quantity == x.quantity())),
+          "Request identifier already used for a different order");
+      return new com.warehousecenter.dto.CustomerRequests.Confirmation(old.reference, old.status);
+    }
+    var catalog = customerCatalog();
+    for (var line : r.lines()) {
+      var item = catalog.stream().filter(p -> p.id().equals(line.productId())).findFirst()
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+      check(item.available() >= line.quantity(), "Not enough available stock for " + item.sku() + ". Refresh availability and try again.");
+    }
+    var order = create("SALES", new Order(reference, customer,
+        r.lines().stream().map(l -> new Line(l.productId(), l.quantity())).toList()));
+    order.source = "CUSTOMER";
+    return new com.warehousecenter.dto.CustomerRequests.Confirmation(order.reference, order.status);
+  }
+
   public WarehouseOrder receive(Long id, Receive r) {
     lock();
     WarehouseOrder o = order(id, "PURCHASE");

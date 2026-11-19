@@ -42,6 +42,15 @@ class SecurityIntegrationTest {
   }
 
   @Test
+  void customerCatalogIsPublicButWarehouseAndOrderListsRemainPrivate() throws Exception {
+    mvc.perform(get("/api/customer/catalog")).andExpect(status().isOk());
+    mvc.perform(get("/api/sales-orders")).andExpect(status().isUnauthorized());
+    mvc.perform(get("/api/customer/orders")).andExpect(status().isUnauthorized());
+    mvc.perform(post("/api/customer/orders").contentType("application/json").content("{}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void validCredentialsWorkAndWrongPasswordIsRejected() throws Exception {
     mvc.perform(get("/api/auth/me").with(httpBasic("test-operator", "test-password-for-suite")))
         .andExpect(status().isOk())

@@ -36,6 +36,8 @@ API authorization checks run on the server for every request. Hiding or enabling
 
 ## Administration and traceability
 
+The customer page at `/order` intentionally permits public GET `/api/customer/catalog` and POST `/api/customer/orders`. Responses contain only product availability or the submitted request's reference/status. Staff orders, inventory details and warehouse actions remain authenticated. Customer requests do not grant a staff account or reserve inventory. See [Customer orders](CUSTOMER_ORDERS.md).
+
 Sign in as administrator, open **Master data & integration → Users & access**, then create a Supervisor or Warehouse Operator with their own initial password. The same screen changes account names, roles and status, resets passwords and clears lockouts. Password hashes and failed-attempt counters are never returned by the user API.
 
 Access history records user creation/updates, password resets, unlocks, successful/failed sign-ins, lockouts, sign-outs and permission denials. Passwords and Authorization headers are not included. Warehouse transaction actors use the authenticated username. Device identity remains the existing demo label; hardware/device registration is not implemented.

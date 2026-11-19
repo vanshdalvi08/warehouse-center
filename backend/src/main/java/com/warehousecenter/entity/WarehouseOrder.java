@@ -22,6 +22,9 @@ public class WarehouseOrder {
 
   public String partner;
 
+  @Column(nullable = false, columnDefinition = "varchar(30) default 'ERP'")
+  public String source = "ERP";
+
   @Column(unique = true)
   public String cartonBarcode;
 

@@ -1,0 +1,113 @@
+.customer-portal {
+  min-height: 100dvh;
+  background: #f8f9fb;
+}
+.customer-header {
+  min-height: 76px;
+  padding: 20px clamp(22px, 5vw, 80px);
+  border-bottom: 1px solid var(--line);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.customer-header > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.customer-header svg {
+  color: #5476ef;
+}
+.customer-header strong {
+  font-size: 15px;
+}
+.customer-header span {
+  font-size: 12px;
+  color: #8993a3;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+}
+.customer-header a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #66758a;
+  text-decoration: none;
+}
+.customer-content {
+  max-width: 960px;
+  margin: auto;
+  padding: 48px 24px;
+}
+.customer-intro {
+  margin-bottom: 30px;
+}
+.customer-intro > span {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #929baa;
+}
+.customer-intro h1 {
+  font-size: 32px;
+  letter-spacing: -1px;
+  margin: 12px 0;
+}
+.customer-intro p,
+.customer-note {
+  color: #8390a2;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.customer-content fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.customer-order-line {
+  margin-top: 24px;
+}
+.customer-order-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(100px, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+.customer-stock {
+  font-size: 12px;
+  color: #66758a;
+  margin-top: 10px;
+}
+.customer-submit {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+}
+.customer-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 24px;
+  font-size: 12px;
+}
+.customer-confirmation strong {
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .customer-header span {
+    display: none;
+  }
+  .customer-order-inputs {
+    grid-template-columns: 1fr;
+  }
+  .customer-submit {
+    flex-direction: column;
+  }
+}

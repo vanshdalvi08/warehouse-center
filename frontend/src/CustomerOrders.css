@@ -1,0 +1,41 @@
+.order-availability-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(120px, 1fr);
+  gap: 20px;
+  max-width: 680px;
+}
+.order-availability-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #f8f9fb;
+  font-size: 12px;
+}
+.order-availability-result strong {
+  font-size: 16px;
+}
+.order-availability-result small {
+  color: #7e8999;
+}
+@media (max-width: 600px) {
+  .order-availability-inputs {
+    grid-template-columns: 1fr;
+  }
+}
+.customer-order-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 24px;
+  color: #7e8999;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.customer-order-link a {
+  color: #4e6de1;
+  text-decoration: none;
+}

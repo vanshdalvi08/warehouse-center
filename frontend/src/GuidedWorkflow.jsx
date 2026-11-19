@@ -49,7 +49,7 @@ function Hint({ children }) {
   return <div className="guide-hint">{children}</div>;
 }
 
-export function GuidedWorkflow({ data, mutate, onError, navigate }) {
+export function GuidedWorkflow({ data, mutate, onError, navigate, reload }) {
   const isAdmin = useAccess().role === "ADMIN";
   const [guide, setGuide] = useState(readGuide);
   const [tasks, setTasks] = useState([]),
@@ -489,62 +489,82 @@ export function GuidedWorkflow({ data, mutate, onError, navigate }) {
               {guide.step === 4 && (
                 <Panel
                   title="4. Customer order"
-                  description="Record what the customer wants. This is called a sales order."
+                  description="The customer submits their request outside the warehouse workspace."
                 >
-                  <Form
-                    label="Save customer order"
-                    onSubmit={async (v) => {
-                      const result = await mutate(
-                        "/mock-erp/sales-orders",
-                        {
-                          reference: v.reference,
-                          partner: v.partner,
-                          lines: [
-                            {
-                              productId: guide.productId,
-                              quantity: Number(v.quantity),
-                            },
-                          ],
-                        },
-                        "Customer order saved. Next, set these units aside.",
-                      );
-                      if (result)
+                  <div className="guide-body">
+                    <Hint>
+                      Open the customer page in a separate tab, choose{" "}
+                      {product?.name} and request 10 units. Submit the order,
+                      return here and refresh incoming orders.
+                    </Hint>
+                    <div className="row-actions">
+                      <a href="/order" target="_blank" rel="noreferrer">
+                        Open customer ordering page
+                      </a>
+                      <button type="button" onClick={reload}>
+                        Refresh incoming orders
+                      </button>
+                    </div>
+                    <Form
+                      label="Use customer order"
+                      onSubmit={(v) => {
+                        const selected = sales.find(
+                          (o) => o.id === Number(v.orderId),
+                        );
+                        if (
+                          !selected ||
+                          selected.source !== "CUSTOMER" ||
+                          selected.status !== "OPEN" ||
+                          selected.lines.length !== 1 ||
+                          selected.lines[0].product.id !== guide.productId
+                        ) {
+                          onError(
+                            "Choose an open customer order for this product.",
+                          );
+                          return;
+                        }
                         save({
                           step: 5,
-                          soId: result.id,
-                          orderedQty: Number(v.quantity),
+                          soId: selected.id,
+                          orderedQty: selected.lines[0].quantity,
                         });
-                    }}
-                  >
-                    <Hint>
-                      Product: <strong>{product?.name}</strong>. You stored{" "}
-                      {guide.receivedQty} units in {guide.storageCode}.
-                    </Hint>
-                    <Field
-                      label="Customer's name"
-                      name="partner"
-                      defaultValue="Demo customer"
-                    />
-                    <Field
-                      label="How many units does the customer want?"
-                      name="quantity"
-                      type="number"
-                      defaultValue={Math.min(10, guide.receivedQty)}
-                    />
-                    <details className="guide-details">
-                      <summary>
-                        Customer order reference (already filled in)
-                      </summary>
+                      }}
+                    >
                       <Field
-                        label="Unique sales order reference"
-                        name="reference"
-                        defaultValue={guide.soReference}
-                      />
-                    </details>
+                        label="Incoming customer order"
+                        name="orderId"
+                        required
+                        defaultValue=""
+                      >
+                        <option value="">Choose a customer request</option>
+                        {sales
+                          .filter(
+                            (o) =>
+                              o.source === "CUSTOMER" &&
+                              o.status === "OPEN" &&
+                              o.lines.length === 1 &&
+                              o.lines[0].product.id === guide.productId,
+                          )
+                          .map((o) => (
+                            <option key={o.id} value={o.id}>
+                              {o.reference} ? {o.partner} ?{" "}
+                              {o.lines[0].quantity} units
+                            </option>
+                          ))}
+                      </Field>
+                    </Form>
                     <Hint>
-                      Creating an order does not send goods or change stock yet.
+                      This walkthrough handles one product. Use Orders for
+                      requests containing multiple products. Selecting a request
+                      does not create another order or reserve stock.
                     </Hint>
-                  </Form>
+                    <button
+                      className="text-button"
+                      onClick={() => navigate("Orders")}
+                    >
+                      Review all customer orders
+                    </button>
+                  </div>
                 </Panel>
               )}
               {guide.step === 5 && (

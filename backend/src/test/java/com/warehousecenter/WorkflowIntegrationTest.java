@@ -75,6 +75,46 @@ class WorkflowIntegrationTest {
         List.of(Map.of("productId", product, "quantity", qty)));
   }
 
+  @Test
+  void customerOrdersCheckEligibleStockRetrySafelyAndUseExistingFulfilment() throws Exception {
+    long po = order("purchase", "PO-CUSTOMER", 50);
+    post("/purchase-orders/" + po + "/receive", receipt(50, "WM101", "customer-receipt"), 200);
+    assertEquals(0, getJson("/customer/catalog").get(0).get("available").asInt());
+    post("/putaway", move(50, "A-01", "customer-move"), 200);
+    var request = Map.of("requestId", UUID.randomUUID().toString(), "customerName", "Outside Customer",
+        "lines", List.of(Map.of("productId", product, "quantity", 10)));
+    var confirmation = post("/customer/orders", request, 200);
+    assertEquals("OPEN", confirmation.get("status").asText());
+    assertEquals(50, getJson("/customer/catalog").get(0).get("available").asInt());
+    assertEquals(confirmation, post("/customer/orders", request, 200));
+    var sales = getJson("/sales-orders");
+    assertEquals(1, sales.size());
+    assertEquals("CUSTOMER", sales.get(0).get("source").asText());
+    long id = sales.get(0).get("id").asLong();
+    post("/sales-orders/" + id + "/allocate", Map.of(), 200);
+    assertEquals(40, getJson("/customer/catalog").get(0).get("available").asInt());
+    post("/customer/orders", Map.of("requestId", UUID.randomUUID().toString(), "customerName", "Too much",
+        "lines", List.of(Map.of("productId", product, "quantity", 41))), 409);
+    long storageId = 0;
+    for (var location : getJson("/locations")) {
+      if ("A-01".equals(location.get("code").asText())) storageId = location.get("id").asLong();
+    }
+    post("/locations/" + storageId + "/state", Map.of("active", false), 200);
+    assertEquals(0, getJson("/customer/catalog").get(0).get("available").asInt());
+    var tasks = getJson("/sales-orders/" + id + "/tasks");
+    // Picking a blocked bin is rejected by the normal warehouse rules.
+    post("/pick-tasks/" + tasks.get(0).get("id").asLong() + "/confirm",
+        Map.of("barcode", "WM101", "sourceCode", "A-01", "packingCode", "PACK-01", "quantity", 10), 409);
+    post("/locations/" + storageId + "/state", Map.of("active", true), 200);
+    post("/pick-tasks/" + tasks.get(0).get("id").asLong() + "/confirm",
+        Map.of("barcode", "WM101", "sourceCode", "A-01", "packingCode", "PACK-01", "quantity", 10), 200);
+    post("/sales-orders/" + id + "/pack", Map.of("cartonBarcode", "WEB-CARTON",
+        "scans", List.of(Map.of("barcode", "WM101", "quantity", 10))), 200);
+    assertEquals("SHIPPED", post("/sales-orders/" + id + "/dispatch",
+        Map.of("cartonBarcode", "WEB-CARTON"), 200).get("status").asText());
+    assertEquals(40, getJson("/customer/catalog").get(0).get("available").asInt());
+  }
+
   long order(String kind, String ref, int qty) throws Exception {
     return post("/mock-erp/" + kind + "-orders", orderBody(ref, qty), 200).get("id").asLong();
   }

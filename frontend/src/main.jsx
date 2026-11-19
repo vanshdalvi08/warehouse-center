@@ -22,6 +22,8 @@ import { api, Badge, Table, Field, Form, Panel } from "./ui";
 import { OrderEditor, Inbound, Outbound } from "./workflows";
 import { GuidedWorkflow } from "./GuidedWorkflow";
 import { Overview } from "./Overview";
+import { CustomerOrders } from "./CustomerOrders";
+import { CustomerPortal } from "./CustomerPortal";
 import { AccessGate } from "./AccessGate";
 import { useAccess } from "./AccessContext";
 import { UserManagement, AccessHistory } from "./UserManagement";
@@ -31,6 +33,7 @@ const pageTitle = (tab) => labels[tab] || tab;
 const nav = [
   ["Start here", ArrowRight],
   ["Overview", LayoutDashboard],
+  ["Orders", Package],
   ["Products", Package],
   ["Locations", MapPin],
   ["Inbound", ArrowDownToLine],
@@ -231,6 +234,7 @@ export function App() {
                 [
                   "Start here",
                   "Overview",
+                  "Orders",
                   "Inbound",
                   "Inventory",
                   "Outbound",
@@ -304,6 +308,8 @@ export function App() {
                       "Manage a receipt and customer shipment in one connected workflow.",
                     Overview:
                       "A clear view of your stock, orders, and warehouse activity.",
+                    Orders:
+                      "Review customer orders and check stock before fulfilment.",
                     Products: "Register products and print Code 128 labels.",
                     Locations:
                       "Manage receiving docks, storage bins, and packing lanes.",
@@ -356,6 +362,7 @@ export function App() {
                 mutate={mutate}
                 onError={setError}
                 navigate={setTab}
+                reload={reload}
               />
             )}
             {tab === "Overview" && (
@@ -364,6 +371,15 @@ export function App() {
                 stockTable={stockTable}
                 openOrder={openOrder}
                 navigate={setTab}
+              />
+            )}
+            {tab === "Orders" && (
+              <CustomerOrders
+                data={data}
+                openOrder={openOrder}
+                mutate={mutate}
+                canSupervise={canSupervise}
+                reload={reload}
               />
             )}
             {tab === "Products" && (
@@ -744,7 +760,11 @@ function BarcodeLabel({ label, close }) {
 const root = document.getElementById("root");
 if (root)
   createRoot(root).render(
-    <AccessGate>
-      <App />
-    </AccessGate>,
+    window.location.pathname === "/order" ? (
+      <CustomerPortal />
+    ) : (
+      <AccessGate>
+        <App />
+      </AccessGate>
+    ),
   );
